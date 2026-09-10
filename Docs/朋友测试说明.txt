@@ -1,9 +1,9 @@
-旮旯乐园 1.4.1 · 朋友内测版
+旮旯乐园 1.4.2 · 朋友内测版
 
 选哪个文件？
-• Mac：GalaParadise-1.4.1-macOS-Universal.zip
+• Mac：GalaParadise-1.4.2-macOS-Universal.zip
   macOS 13 或更新系统，同时支持 Apple M 系列与 Intel Mac。
-• Windows：GalaParadise-1.4.1-Windows-x64.zip
+• Windows：GalaParadise-1.4.2-Windows-x64.zip
   Windows 10 22H2 / Windows 11，64 位 Intel / AMD 电脑。
   这是自带 .NET 运行环境的程序，不用另装 .NET。Windows ARM 不是本次的原生构建目标。
 

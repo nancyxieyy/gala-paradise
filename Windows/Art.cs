@@ -36,9 +36,12 @@ static class Art {
             Oval(g,Color.FromArgb(40,118,88,69),18,112,94,12);
             foreach(float x in new[]{36f,87f})Oval(g,Color.FromArgb(220,163,160),x+wig,108,19,11,Ink,3);
             var fur=Color.FromArgb(169,151,140);var blush=Color.FromArgb(220,163,160);
-            Oval(g,fur,51,29,33,38,Ink,3.5f);Oval(g,blush,58,36,19,23);
+            Oval(g,fur,23,38,27,30,Ink,3.5f);Oval(g,blush,29,44,15,18);
             Oval(g,fur,23,51,91,65,Ink,4);Oval(g,Color.FromArgb(198,183,166),25,75,69,38);
-            Oval(g,Color.FromArgb(183,166,152),18,25,40,44,Ink,4);Oval(g,Color.FromArgb(230,180,174),26,33,24,28);
+            // Open base joins the near ear to the head instead of making a separate ring.
+            using var ear=new GraphicsPath();ear.AddBezier(54,69,48,65,46,55,50,48);ear.AddBezier(50,48,54,33,74,32,81,43);ear.AddBezier(81,43,91,56,86,68,75,72);
+            using var earFill=new SolidBrush(fur);using var earPen=new Pen(Ink,3.5f){StartCap=LineCap.Round,EndCap=LineCap.Round};g.FillPath(earFill,ear);g.DrawPath(earPen,ear);
+            Oval(g,Color.FromArgb(230,180,174),56,43,23,23);
             Oval(g,Color.FromArgb(211,195,180),87,62,13,7);Oval(g,Color.FromArgb(211,195,180),100,72,5,5);
             Oval(g,Color.White,9,67,33,37,Ink,3.5f);Oval(g,Color.White,37,64,43,42,Ink,3.5f);
             Oval(g,Ink,16,80,8,12);Oval(g,Ink,47,79,9,13);

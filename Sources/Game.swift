@@ -17,11 +17,13 @@ struct Resident: Codable, Identifiable {
     var vx: Double = 0
     var vy: Double = 0
     var flyingUntil: Double = 0
+    var carryUntil:Double?
     var tauntUntil: Double = 0
     var friend:Bool {kind == .mouse || kind == .catPaw}
     var live: Bool { kind == .adult || kind == .baby || kind == .gold || friend }
 }
 struct GameState: Codable {
+    var life:Life?=Life()
     var progression:Progression?=Progression()
     var version = 1
     var xp = 0
@@ -40,20 +42,25 @@ struct GameState: Codable {
     mutating func use(_ tool: Tool, on id: UUID, now: Double, flightRoll: Double) -> String {
         guard unlocked.contains(tool) else { return "还没解锁，先喂食或捉几只旮杂" }
         guard let i = residents.firstIndex(where: { $0.id == id }) else { return "" }
+        ensureLife()
         let kind = residents[i].kind
+        if protected(residents[i]) {return "这是受保护的住客，请在住客手册里与它互动"}
         if residents[i].friend {return kind == .mouse ? "吱～新朋友只是路过" : "猫爪轻轻碰了碰你 ♡"}
         if residents[i].live {
             if tool == .cleaner { return "清洁剂只擦污渍，旮杂笑你了" }
             
             if residents[i].flyingUntil > now && tool != .vacuum { return "嘿嘿，打不到～等它落地，或用吸尘器" }
             if (kind == .adult || kind == .gold) && tool != .vacuum && tool != .poison && flightRoll < 0.24 {
+                life!.observe(residents[i],now)
+                life!.bonds[id.uuidString.lowercased()]!.fear+=1
                 residents[i].flyingUntil = now + 2.8
                 residents[i].tauntUntil = now + 2.8
                 return "它居然起飞了！打不到～"
             }
-            if kind == .gold {migrateProgression();progression!.shells+=2}
+            if kind == .gold {migrateProgression();progression!.shells+=life!.gold(id,now)}
             captures += 1; gain(2)
             if tool == .vacuum { residents.remove(at: i); return "咻——吸走一只旮杂" }
+            life!.defeat(now)
             residents[i].kind = tool == .pinch ? .stain : .corpse
             residents[i].born = now
             return tool == .pinch ? "噗叽！奶油爆浆留下了，得用清洁剂擦" : "啪！已躺平。吸尘器负责收尾"

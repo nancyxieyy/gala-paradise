@@ -1,5 +1,6 @@
 import AppKit
 if CommandLine.arguments.contains("--self-test") {
+    runLifeTests()
     runModelTests()
     runRoamingTests()
     runHabitatTests()

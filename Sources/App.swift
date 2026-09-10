@@ -63,6 +63,10 @@ final class PetView: NSView {
             clip.appendRect(NSRect(x:entry.frame.minX-r.x,y:bounds.height-entry.frame.maxY+r.y,width:entry.frame.width,height:entry.frame.height));clip.addClip()
         }
         drawBug(in:NSRect(x:(bounds.width-size)/2,y:bounds.height-size,width:size,height:size),kind:r.kind,phase:r.kind == .catPaw ? now-r.born : now,flying:r.flyingUntil>now,facing:r.vx>=0 ? 1 : -1)
+        if (r.carryUntil ?? 0)>now {
+            paintRect(NSRect(x:bounds.width/2,y:bounds.height-28,width:28,height:23),cream,radius:3,stroke:ink)
+            for y in [8.0,14.0] {line([NSPoint(x:bounds.width/2+5,y:bounds.height-28+y),NSPoint(x:bounds.width/2+23,y:bounds.height-28+y)],moss,1)}
+        }
         if r.tauntUntil>now {
             paintRect(NSRect(x:3,y:7,width:140,height:27),cream,radius:12,stroke:ink)
             label(r.flyingUntil>now ? "打不到～我会飞！" : "你以为没有了？",13,11,size:11,weight:.semibold,width:128)
@@ -82,6 +86,7 @@ final class Dashboard: NSView {
     override var isFlipped: Bool { true }
     init(engine:Paradise) {
         self.engine=engine; super.init(frame:NSRect(x:0,y:0,width:980,height:748))
+        addSubview(ActionButton("住客手册 · 互动与成就 ↗",frame:NSRect(x:455,y:281,width:210,height:43)){[weak engine] in engine?.showLife()})
         func button(_ title:String,_ frame:NSRect,_ fill:NSColor = color(0xE8E9DB),_ action:@escaping ()->Void) -> ActionButton {
             let b=ActionButton(title,frame:frame,fill:fill,action:action); addSubview(b); return b
         }
@@ -172,6 +177,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var entrances:[UUID:(frame:CGRect,until:Double)]=[:]
     var isTestRun:Bool { CommandLine.arguments.contains("--smoke") || CommandLine.arguments.contains("--render") || CommandLine.arguments.contains("--integration-test") }
     var window:NSWindow!
+    var lastLifeRefresh:Double=0
+    var tracePanel:PetPanel?
+    var lifeController:LifeController?
     var dashboard:Dashboard!
     var status:NSStatusItem!
     var panels:[UUID:PetPanel]=[:]
@@ -195,7 +203,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var saveURL:URL { FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GalaParadise/save.json") }
     func applicationDidFinishLaunching(_ notification:Notification) {
         load()
-        state.migrateProgression()
+        state.migrateProgression();state.ensureLife();state.life!.focusRemaining=0
         if !isTestRun,let data=try? Data(contentsOf:saveURL.deletingLastPathComponent().appendingPathComponent("habitat.json")),let restored=try? JSONDecoder().decode(Habitat.self,from:data) {habitat=restored;habitat.rate=[0.25,1,3].contains(habitat.rate) ? habitat.rate : 1}
         let menu=NSMenu(); let appItem=NSMenuItem(); menu.addItem(appItem); let appMenu=NSMenu(); appMenu.addItem(withTitle:"关于旮旯乐园",action:#selector(showDashboard),keyEquivalent:""); appMenu.addItem(.separator()); appMenu.addItem(withTitle:"退出旮旯乐园",action:#selector(NSApplication.terminate(_:)),keyEquivalent:"q"); appItem.submenu=appMenu; NSApp.mainMenu=menu
         window=NSWindow(contentRect:NSRect(x:0,y:0,width:980,height:748),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false)
@@ -220,6 +228,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         m.addItem(heading);m.addItem(withTitle:"黄金卵壳："+String(state.progression?.shells ?? 0),action:nil,keyEquivalent:"");m.addItem(withTitle:"新朋友："+(state.progression?.seen.isEmpty == false ? state.progression!.seen.map{$0 == "mouse" ? "老鼠" : "猫爪"}.joined(separator:"、") : "老鼠 3 分钟 / 猫爪 10 分钟"),action:nil,keyEquivalent:"");m.addItem(.separator())
         status.button?.toolTip="旮旯乐园 · 当前："+state.tool.title+" · 点击换工具"
         func item(_ title:String,_ action:Selector,_ key:String="") { let i=NSMenuItem(title:title,action:action,keyEquivalent:key); i.target=self; m.addItem(i) }
+        item("住客手册 · 互动 / 支线 / 成就",#selector(showLife));
         item("打开旮旯乐园",#selector(showDashboard)); item("撒点面包屑  +3",#selector(feed)); item(paused ? "继续桌宠" : "暂停并隐藏桌宠",#selector(togglePause)); item(state.quiet ? "关闭专注模式" : "开启专注模式",#selector(toggleQuiet))
         m.addItem(.separator())
         for t in Tool.allCases { let i=NSMenuItem(title:state.unlocked.contains(t) ? t.title : "\(t.title)（\(t.cost) 金壳兑换）",action:#selector(menuTool(_:)),keyEquivalent:""); i.target=self; i.representedObject=t.rawValue; i.image=NSImage(systemSymbolName:t.glyph,accessibilityDescription:t.title); i.state=state.tool==t ? .on : .off; m.addItem(i) }
@@ -235,9 +244,10 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func changeRate(_ sender:NSMenuItem) {if let rate=sender.representedObject as? Double {habitat.rate=rate;save();rebuildMenu();tell("生长速度已调整为 "+String(rate)+"×")}}
     @objc func scan() {
         guard state.unlocked.contains(.poison) else {tell("兑换杀虫喷雾后，可使用全局扫描");return}
-        let removed=state.residents.filter{$0.kind != .stain && !$0.friend}.count
-        state.residents.removeAll{$0.kind != .stain && !$0.friend};habitat.clean(now:Date().timeIntervalSince1970)
-        syncPanels();save();tell("扫描清走 "+String(removed)+" 个住客／卵，防护 5 分钟；污渍手动擦")
+        let beforeCount=state.residents.count
+        let protectedIDs=Set(state.residents.filter{state.protected($0) || (state.life?.safeLeft==true && $0.x < (NSScreen.main?.frame.midX ?? 0))}.map{$0.id})
+        state.residents.removeAll{$0.kind != .stain && !$0.friend && !protectedIDs.contains($0.id)};habitat.clean(now:Date().timeIntervalSince1970)
+        syncPanels();save();tell("扫描清走 "+String(beforeCount-state.residents.count)+" 个住客／卵，防护 5 分钟；污渍手动擦")
     }
     @objc func menuTool(_ sender:NSMenuItem) { if let raw=sender.representedObject as? String,let t=Tool(rawValue:raw) {select(t)} }
     @objc func showDashboard() { if window.isMiniaturized {window.deminiaturize(nil)};window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps:true); dashboard.refresh() }
@@ -256,7 +266,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func removePoison() { state.poisoned=false; if state.tool == .poison {state.tool = .pinch}; tell("蟑螂药已收起，住客恢复正常出逃"); save(); rebuildMenu() }
     @objc func feed() {
         let now=Date().timeIntervalSince1970
-        guard !paused else {tell("先继续桌宠，再投喂吧"); return}
+        guard !paused && !state.focusing else {tell("先继续桌宠，再投喂吧"); return}
         guard now-lastFeed>2 else {tell("嚼嚼嚼……稍等两秒再喂"); return}; lastFeed=now
         state.fed+=1; state.gain(3); spawn(.adult)
         if state.fed%2==0 {spawn(.egg)}
@@ -294,7 +304,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         folderBurst(name:name,at:p,frame:window.frame)
     }
     func folderBurst(name:String,at point:NSPoint?,identity:String?=nil,frame:CGRect?=nil) {
-        guard !paused && !state.quiet else {tell("当前已暂停或专注中，文件夹里的住客先不打扰");return}
+        guard !paused && !state.focusing && !state.quiet else {tell("当前已暂停或专注中，文件夹里的住客先不打扰");return}
         let now=Date().timeIntervalSince1970
         guard now-lastFolder>1.2 else {return};lastFolder=now
         state.foldersOpened+=1;state.gain(1)
@@ -304,7 +314,8 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let side=(n+firstSide)%4
             let edge=frame.map{Habitat.border($0,side:side,fraction:Double.random(in:0.2...0.8))} ?? point
             let previous=state.residents.count
-            spawn(state.poisoned ? .corpse : .adult,at:edge)
+            let inSafe=state.life?.safeLeft==true && (edge?.x ?? 0)<(NSScreen.main?.frame.midX ?? 0)
+            spawn(state.poisoned && !inSafe ? .corpse : .adult,at:edge)
             if let frame=frame,state.residents.count>previous,let r=state.residents.last,r.live,let edge=edge {
                 entrances[r.id]=(frame,now+2.5)
                 visits[r.id]?.target=CGPoint(x:edge.x+(side==0 ? -140 : side==1 ? 140 : 0),y:edge.y+(side==2 ? -140 : side==3 ? 140 : 0))
@@ -316,7 +327,8 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         save();rebuildMenu();syncPanels()
     }
     func interact(_ id:UUID) {
-        guard !paused, visits[id]?.hidden != true else{return}
+        guard !paused, !state.focusing, visits[id]?.hidden != true else{return}
+        if let r=state.residents.first(where:{$0.id==id}),r.live,state.life?.safeLeft==true,r.x < (visits[id]?.screen.midX ?? NSScreen.main?.frame.midX ?? 0) {tell("这里是安全窝，住客不会受到伤害");return}
         let old=state.unlocked.count
         let before=state.residents.first{$0.id==id}
         let msg=state.use(state.tool,on:id,now:Date().timeIntervalSince1970,flightRoll:Double.random(in:0...1))
@@ -380,6 +392,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let id=state.residents[i].id
             if state.residents[i].kind == .baby && now-state.residents[i].born>120 && !state.quiet {state.residents[i].kind = .adult}
             guard var visit=visits[id],!visit.hidden else {continue}
+            let resident=state.residents[i]
+            if !resident.friend && !state.protected(resident) && now < (state.life?.guardUntil ?? 0) && resident.x>=visit.screen.midX {visits[id]=Visit();changed=true;continue}
+            if !resident.friend,(state.life?.bonds[id.uuidString.lowercased()]?.fear ?? 0)>0,hypot(NSEvent.mouseLocation.x-resident.x,NSEvent.mouseLocation.y-resident.y)<120 {visit.exiting=true;visit.target=Visit.nearestExit(from:CGPoint(x:resident.x,y:resident.y),in:visit.screen,kind:resident.kind)}
             let speed=(state.residents[i].kind == .mouse ? 145.0 : state.residents[i].kind == .catPaw ? 18.0 : state.residents[i].flyingUntil>now ? 190.0 : 58.0)*(state.quiet ? 0.4 : 1)
             visit.advance(&state.residents[i],now:now,dt:dt,speed:speed)
             visits[id]=visit
@@ -390,7 +405,8 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if let r=state.residents.filter({$0.live && !$0.friend}).randomElement() {beginVisit(r.id,now:now);changed=true}
             nextAppearance=now+Double.random(in:22...45)
         }
-        state.residents.removeAll{$0.friend && visits[$0.id]?.hidden == true}
+        let known=Set(state.life?.bonds.keys.map{$0} ?? [])
+        state.residents.removeAll{$0.friend && visits[$0.id]?.hidden == true && !known.contains($0.id.uuidString.lowercased())}
         if changed {syncPanels()}
     }
     func syncPanels() {
@@ -404,10 +420,10 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         for r in state.residents {
             panels[r.id]?.setFrameOrigin(NSPoint(x:r.x,y:r.y))
-            if paused || (r.live && visits[r.id]?.hidden != false) {panels[r.id]?.orderOut(nil)}
+            if paused || state.focusing || (r.live && visits[r.id]?.hidden != false) {panels[r.id]?.orderOut(nil)}
             else if panels[r.id]?.isVisible != true {panels[r.id]?.orderFrontRegardless()}
         }
-        dashboard?.refresh()
+        dashboard?.refresh();syncTrace()
     }
     @objc func screenChanged() {
         guard let f=NSScreen.main?.visibleFrame else{return}
@@ -420,13 +436,19 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     @objc func tick() {
         let now=Date().timeIntervalSince1970;let dt=min(0.1,now-frameTime);frameTime=now
-        guard !paused else{return};tickCount+=1
+        state.ensureLife()
+        if state.focusing {for i in state.residents.indices {state.residents[i].born+=dt};lastHatch+=dt}
+        if state.life!.tick((paused || state.quiet) && !state.focusing ? 0 : dt,now) {tell("专注完成！大家等你回来");nextAppearance=now+20;nextGold=now+30;nextMouse=now+60;nextCat=now+90;syncPanels()}
+        syncTrace()
+        if now-lastLifeRefresh>=1 {lastLifeRefresh=now;if lifeController?.window?.isVisible==true {lifeController?.refresh()}}
+        guard !paused && !state.focusing else{return};tickCount+=1
         if !state.quiet {for i in state.residents.indices where state.residents[i].kind == .egg || state.residents[i].kind == .baby {state.residents[i].born-=dt*(habitat.rate-1)}}
         state.progression?.played+=dt
         if !state.quiet {encounters(now)}
         advanceVisits(now,dt)
         for i in state.residents.indices {
             let r=state.residents[i]
+            if r.live && visits[r.id]?.hidden == false,let panel=panels[r.id],NSScreen.screens.contains(where:{$0.frame.intersects(panel.frame)}) {state.life?.observe(r,now)}
             if r.live && visits[r.id]?.hidden != false {continue}
             panels[r.id]?.setFrameOrigin(NSPoint(x:r.x,y:r.y));panels[r.id]?.contentView?.needsDisplay=true
             // Only the visible character captures clicks; the rest of the desktop remains usable.
@@ -436,7 +458,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         if tickCount%30==0 {
             if !state.quiet {ecology(now);checkFinder()}
-            dashboard.refresh()
+            dashboard.refresh();if lifeController?.window?.isVisible==true {lifeController?.refresh()}
         }
         if tickCount%300==0 {save()}
     }
@@ -444,20 +466,21 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard now>=habitat.cleanUntil else{return}
         if now>=nextGold {
             nextGold=now+Double.random(in:45...90)
-            if let r=state.residents.first(where:{$0.kind == .gold && visits[$0.id]?.hidden == true}) {beginVisit(r.id,now:now)}
-            else if state.residents.filter({$0.kind == .gold}).count<2 {spawn(.gold,taunt:true);if let r=state.residents.last,r.kind == .gold {beginVisit(r.id,now:now)}}
+            if let r=state.residents.first(where:{$0.kind == .gold && visits[$0.id]?.hidden == true && !(state.life?.goldPaid.contains($0.id.uuidString.lowercased()) ?? false)}) {beginVisit(r.id,now:now)}
+            else if state.residents.filter({$0.kind == .gold && !(state.life?.goldPaid.contains($0.id.uuidString.lowercased()) ?? false)}).count<2 {spawn(.gold,taunt:true);if let r=state.residents.last,r.kind == .gold {beginVisit(r.id,now:now)}}
         }
         let played=state.progression?.played ?? 0
         if played>=180 && now>=nextMouse {
             nextMouse=now+Double.random(in:120...240)
-            if state.residents.filter({$0.kind == .mouse}).count<2 {spawnFriend(.mouse,now:now)}
+            if state.residents.filter({$0.kind == .mouse && visits[$0.id]?.hidden == false}).count<2 {spawnFriend(.mouse,now:now)}
         }
         if played>=600 && now>=nextCat {
             nextCat=now+Double.random(in:240...420)
-            if !state.residents.contains(where:{$0.kind == .catPaw}) {spawnFriend(.catPaw,now:now)}
+            if !state.residents.contains(where:{$0.kind == .catPaw && visits[$0.id]?.hidden == false}) {spawnFriend(.catPaw,now:now)}
         }
     }
     func spawnFriend(_ kind:BugKind,now:Double){
+        if let known=state.residents.first(where:{$0.kind==kind && visits[$0.id]?.hidden != false}) {summon(known.id,now);return}
         let before=state.residents.count;spawn(kind)
         guard state.residents.count>before,let r=state.residents.last,let screen=NSScreen.main else{return}
         beginVisit(r.id,now:now)
@@ -559,7 +582,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         label("同画风 · 桌面尺寸对比",340,245,size:14,weight:.semibold)
         mouse.unlockFocus()
         if let tiff=mouse.tiffRepresentation,let bitmap=NSBitmapImageRep(data:tiff){try? bitmap.representation(using:.png,properties:[:])?.write(to:root.appendingPathComponent("Resources/mouse-preview.png"))}
-        print("RENDER: dashboard, characters, desktop sizes and new friends exported")
+        showLife()
+        if let view=lifeController?.window?.contentView,let bitmap=view.bitmapImageRepForCachingDisplay(in:view.bounds) {view.cacheDisplay(in:view.bounds,to:bitmap);try? bitmap.representation(using:.png,properties:[:])?.write(to:root.appendingPathComponent("Resources/life-preview.png"))}
+        print("RENDER: dashboard, characters, desktop sizes, new friends and resident handbook exported")
     }
     func integrationTest() {
         timer?.invalidate()
@@ -640,6 +665,16 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let mouseResident=state.residents.first{$0.kind == .mouse}!
         precondition(panels[mouseResident.id]!.contentView!.bounds.size == petCanvas(.mouse))
         precondition(desktopSize(.mouse) < panels[mouseResident.id]!.frame.width)
+        state.ensureLife()
+        lifeAction("name",id:mouseResident.id,text:"圆耳",note:nil)
+        precondition(state.protected(state.residents.first{$0.id==mouseResident.id}!))
+        showLife();precondition(lifeController?.window?.isVisible==true)
+        lifeAction("focus",id:nil,text:"",note:nil,minutes:1)
+        precondition(state.focusing && panels.values.allSatisfy{!$0.isVisible})
+        state.life!.focusRemaining=0.001;frameTime=Date().timeIntervalSince1970-0.02;tick()
+        precondition(state.life!.cards["focus.first"] != nil)
+        lifeController?.window?.orderOut(nil)
+        print("PASS: native handbook, naming protection, focus hides panels and completion card")
         print("PASS: mouse canvas fits enlarged art")
         print("PASS: mouse/cat playtime discovery and encounter cooldowns")
         print("PASS: growth menu and scan protection preserve manual stain cleanup")
@@ -649,7 +684,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func load() {
         if isTestRun {return}
         guard let data=try? Data(contentsOf:saveURL) else{return}
-        do {state=try JSONDecoder().decode(GameState.self,from:data);if state.progression==nil {let backup=saveURL.deletingLastPathComponent().appendingPathComponent("save.before-1.4.json");if !FileManager.default.fileExists(atPath:backup.path){try? data.write(to:backup,options:.atomic)}};state.residents=Array(state.residents.prefix(maxResidents)); state.migrateProgression();screenChanged()} catch {message="存档暂时无法读取，本次从新乐园开始"}
+        do {state=try JSONDecoder().decode(GameState.self,from:data);if state.life==nil {let backup=saveURL.deletingLastPathComponent().appendingPathComponent("save.before-1.5.json");if !FileManager.default.fileExists(atPath:backup.path){try? data.write(to:backup,options:.atomic)}};if state.progression==nil {let backup=saveURL.deletingLastPathComponent().appendingPathComponent("save.before-1.4.json");if !FileManager.default.fileExists(atPath:backup.path){try? data.write(to:backup,options:.atomic)}};state.residents=Array(state.residents.prefix(maxResidents)); state.migrateProgression();screenChanged()} catch {message="存档暂时无法读取，本次从新乐园开始"}
         lastHatch=Date().timeIntervalSince1970
     }
     func save() {

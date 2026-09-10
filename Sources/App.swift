@@ -23,6 +23,7 @@ final class ActionButton: NSButton {
     }
 }
 final class PetPanel: NSPanel {
+    override func constrainFrameRect(_ frameRect:NSRect,to screen:NSScreen?) -> NSRect {frameRect}
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
 }
@@ -55,7 +56,7 @@ final class PetView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         guard let e=engine, let r=e.state.residents.first(where:{$0.id==id}) else {return}
         let now=Date().timeIntervalSince1970
-        let size: CGFloat = r.kind == .baby ? 67 : r.kind == .egg ? 75 : 98
+        let size: CGFloat = desktopSize(r.kind)
         drawBug(in:NSRect(x:(146-size)/2,y:140-size,width:size,height:size),kind:r.kind,phase:now,flying:r.flyingUntil>now,facing:r.vx>=0 ? 1 : -1)
         if r.tauntUntil>now {
             paintRect(NSRect(x:3,y:7,width:140,height:27),cream,radius:12,stroke:ink)
@@ -114,7 +115,7 @@ final class Dashboard: NSView {
         label("G A L A   P A R A D I S E",41,64,size:9,weight:.bold,c:moss)
         paintRect(NSRect(x:737,y:36,width:203,height:31),color(0xE7E9DA),radius:15)
         oval(NSRect(x:752,y:47,width:7,height:7),e.paused ? orange : moss)
-        label(e.paused ? "暂时安静 · 桌宠已暂停" : "桌面生态运行中 · 本地存档",768,42,size:11,weight:.medium)
+        label(e.paused ? "暂时安静 · 桌宠已暂停" : "在外 " + String(e.visibleLiveCount) + " 只 · 角落藏着 " + String(g.residents.filter{$0.live}.count-e.visibleLiveCount) + " 只",768,42,size:11,weight:.medium)
         line([NSPoint(x:40,y:93),NSPoint(x:940,y:93)],color(0xDDDECF),1)
         paintRect(NSRect(x:40,y:114,width:900,height:233),color(0xE8EBD9),radius:22)
         label("一只旮杂，整台电脑的热闹。",56,133,size:11,weight:.semibold,c:moss)
@@ -154,7 +155,7 @@ final class Dashboard: NSView {
         label(g.unlocked.count==5 ? "全工具已解锁 · 旮杂永远有下一招" : "下一件：\(Tool.allCases.first{$0.threshold>g.xp}!.title)",40,700,size:10,c:color(0x818572))
         label(e.message,300,665,size:12,weight:.medium,c:orange,width:302)
         label(g.tool.detail,300,689,size:10,c:color(0x818572),width:302)
-        label("菜单栏「旮」随时召回  ·  ⌘Q 退出  ·  污渍仅为桌宠图层",40,728,size:9,c:color(0x959887))
+        label("顶部蟑螂图标随时召回  ·  ⌘Q 退出  ·  污渍仅为桌宠图层",40,728,size:9,c:color(0x959887))
     }
 }
 
@@ -165,6 +166,8 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var dashboard:Dashboard!
     var status:NSStatusItem!
     var panels:[UUID:PetPanel]=[:]
+    var visits:[UUID:Visit]=[:]
+    var nextAppearance=Date().timeIntervalSince1970+8
     var timer:Timer?
     var paused=false
     var pauseStarted:Double=0
@@ -184,10 +187,13 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window=NSWindow(contentRect:NSRect(x:0,y:0,width:980,height:748),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false)
         window.title="旮旯乐园 · Gala Paradise"; window.titlebarAppearsTransparent=true; window.backgroundColor=cream; window.isReleasedWhenClosed=false; window.delegate=self
         dashboard=Dashboard(engine:self); window.contentView=dashboard; window.center()
-        status=NSStatusBar.system.statusItem(withLength:NSStatusItem.variableLength); status.button?.title="旮"
+        status=NSStatusBar.system.statusItem(withLength:32)
+        status.button?.image=menuPetIcon()
+        status.button?.setAccessibilityLabel("旮旯乐园：切换清洁工具")
         rebuildMenu()
         NotificationCenter.default.addObserver(self,selector:#selector(screenChanged),name:NSApplication.didChangeScreenParametersNotification,object:nil)
         if state.residents.isEmpty && state.xp==0 { spawn(.adult); spawn(.baby) }
+        for r in state.residents where r.live {visits[r.id]=Visit()}
         syncPanels(); showDashboard()
         timer=Timer.scheduledTimer(timeInterval:1.0/30.0,target:self,selector:#selector(tick),userInfo:nil,repeats:true)
         if CommandLine.arguments.contains("--render") { DispatchQueue.main.asyncAfter(deadline:.now()+0.5) { self.renderPreview(); NSApp.terminate(nil) } }
@@ -196,17 +202,21 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     func rebuildMenu() {
         let m=NSMenu()
+        let heading=NSMenuItem(title:"当前工具："+state.tool.title,action:nil,keyEquivalent:"")
+        m.addItem(heading);m.addItem(.separator())
+        status.button?.toolTip="旮旯乐园 · 当前："+state.tool.title+" · 点击换工具"
         func item(_ title:String,_ action:Selector,_ key:String="") { let i=NSMenuItem(title:title,action:action,keyEquivalent:key); i.target=self; m.addItem(i) }
         item("打开旮旯乐园",#selector(showDashboard)); item("撒点面包屑  +3",#selector(feed)); item(paused ? "继续桌宠" : "暂停并隐藏桌宠",#selector(togglePause)); item(state.quiet ? "关闭专注模式" : "开启专注模式",#selector(toggleQuiet))
         m.addItem(.separator())
-        for t in Tool.allCases { let i=NSMenuItem(title:state.xp>=t.threshold ? t.title : "\(t.title)（\(t.threshold) 点解锁）",action:#selector(menuTool(_:)),keyEquivalent:""); i.target=self; i.representedObject=t.rawValue; i.state=state.tool==t ? .on : .off; m.addItem(i) }
+        for t in Tool.allCases { let i=NSMenuItem(title:state.xp>=t.threshold ? t.title : "\(t.title)（\(t.threshold) 点解锁）",action:#selector(menuTool(_:)),keyEquivalent:""); i.target=self; i.representedObject=t.rawValue; i.image=NSImage(systemSymbolName:t.glyph,accessibilityDescription:t.title); i.state=state.tool==t ? .on : .off; m.addItem(i) }
         if state.poisoned { item("收起蟑螂药",#selector(removePoison)) }
         m.addItem(.separator()); item("退出旮旯乐园",#selector(quit),"q"); status.menu=m
     }
     @objc func menuTool(_ sender:NSMenuItem) { if let raw=sender.representedObject as? String,let t=Tool(rawValue:raw) {select(t)} }
-    @objc func showDashboard() { window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps:true); dashboard.refresh() }
+    @objc func showDashboard() { if window.isMiniaturized {window.deminiaturize(nil)};window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps:true); dashboard.refresh() }
     @objc func quit() { NSApp.terminate(nil) }
-    func windowWillClose(_ notification:Notification) { tell("面板已收起，菜单栏「旮」可以召回") }
+    func windowDidMiniaturize(_ notification:Notification) {tell("已最小化，点顶部蟑螂图标就能换工具")}
+    func windowWillClose(_ notification:Notification) { tell("面板已收起，顶部蟑螂图标可以召回") }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication)->Bool {false}
     func applicationWillTerminate(_ notification:Notification) {save(); panels.values.forEach{$0.orderOut(nil)}}
     func tell(_ text:String) { message=text; dashboard?.refresh() }
@@ -229,7 +239,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func release() {
         if paused {togglePause()}
         if state.residents.filter({$0.live}).count<4 {spawn(.adult);spawn(.baby)}
-        syncPanels(); tell("它们去桌面串门了。菜单栏「旮」召回面板")
+        syncPanels(); tell("它们去桌面串门了。顶部蟑螂图标召回面板")
         window.orderOut(nil)
     }
     @objc func togglePause() {
@@ -238,7 +248,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let now=Date().timeIntervalSince1970, delta=now-pauseStarted
             for i in state.residents.indices {state.residents[i].born+=delta;state.residents[i].flyingUntil+=delta;state.residents[i].tauntUntil+=delta}
             lastHatch+=delta;if emptySince>0 {emptySince+=delta}
-            frameTime=now;panels.values.forEach{$0.orderFrontRegardless()}
+            for id in Array(visits.keys) {visits[id]?.deadline+=delta}
+            nextAppearance+=delta
+            frameTime=now;syncPanels()
         }
         tell(paused ? "全体暂停并隐藏，可以安心办公" : "住客们回来啦"); rebuildMenu()
     }
@@ -265,11 +277,12 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         save();rebuildMenu();syncPanels()
     }
     func interact(_ id:UUID) {
-        guard !paused else{return}
+        guard !paused, visits[id]?.hidden != true else{return}
         let old=state.unlocked.count
         let before=state.residents.first{$0.id==id}
         let msg=state.use(state.tool,on:id,now:Date().timeIntervalSince1970,flightRoll:Double.random(in:0...1))
         if state.unlocked.count>old {tell(msg+" · 新工具解锁！")} else {tell(msg)}
+        if let index=state.residents.firstIndex(where:{$0.id==id}),!state.residents[index].live {visits.removeValue(forKey:id)}
         if let before=before {
             let after=state.residents.first{$0.id==id}
             if after == nil || (before.live && after?.live == false) {showEffect(state.tool,at:NSPoint(x:before.x,y:before.y))}
@@ -299,43 +312,76 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         var r=Resident(kind:kind,x:x,y:y,born:now,vx:Double.random(in:25...65)*(Bool.random() ? 1 : -1),vy:Double.random(in:-30...30))
         if taunt {r.tauntUntil=now+4}
         state.residents.append(r)
+        if r.live {
+            visits[r.id]=Visit()
+            if point != nil || visibleLiveCount<1 {beginVisit(r.id,now:now,from:point)}
+        }
+    }
+    var visibleLiveCount:Int {state.residents.filter{$0.live && visits[$0.id]?.hidden == false}.count}
+    func beginVisit(_ id:UUID,now:Double,from point:NSPoint?=nil) {
+        guard let i=state.residents.firstIndex(where:{$0.id==id}),let screen=NSScreen.screens.randomElement() else{return}
+        let frame: CGRect
+        if let p=point {frame=(NSScreen.screens.first{$0.frame.contains(p)} ?? screen).frame} else {frame=screen.frame}
+        let edge=Int.random(in:0..<4)
+        let start=point ?? Visit.edgePoint(edge,in:frame,fraction:Double.random(in:0.18...0.82))
+        state.residents[i].x=start.x;state.residents[i].y=start.y
+        // Cross a short stretch of the current desktop, then slip back out of view.
+        let target=CGPoint(x:frame.minX+frame.width*Double.random(in:0.25...0.75)-73,y:frame.minY+frame.height*Double.random(in:0.2...0.7)-35)
+        visits[id]=Visit(hidden:false,exiting:false,deadline:now+Double.random(in:9...16),target:target,screen:frame)
+    }
+    func advanceVisits(_ now:Double,_ dt:Double) {
+        var changed=false
+        for i in state.residents.indices where state.residents[i].live {
+            let id=state.residents[i].id
+            if state.residents[i].kind == .baby && now-state.residents[i].born>120 && !state.quiet {state.residents[i].kind = .adult}
+            guard var visit=visits[id],!visit.hidden else {continue}
+            let speed=(state.residents[i].flyingUntil>now ? 190.0 : 58.0)*(state.quiet ? 0.4 : 1)
+            visit.advance(&state.residents[i],now:now,dt:dt,speed:speed)
+            visits[id]=visit
+            if visit.hidden {nextAppearance=now+Double.random(in:22...45);changed=true}
+            if state.residents[i].kind == .baby && now-state.residents[i].born>120 && !state.quiet {state.residents[i].kind = .adult}
+        }
+        if !state.quiet && visibleLiveCount==0 && now>=nextAppearance {
+            if let r=state.residents.filter({$0.live}).randomElement() {beginVisit(r.id,now:now);changed=true}
+            nextAppearance=now+Double.random(in:22...45)
+        }
+        if changed {syncPanels()}
     }
     func syncPanels() {
         let ids=Set(state.residents.map{$0.id})
-        for id in Array(panels.keys) where !ids.contains(id) {panels[id]?.close();panels.removeValue(forKey:id)}
+        for id in Array(panels.keys) where !ids.contains(id) {panels[id]?.close();panels.removeValue(forKey:id);visits.removeValue(forKey:id)}
         for r in state.residents where panels[r.id]==nil {
             let p=PetPanel(contentRect:NSRect(x:r.x,y:r.y,width:146,height:140),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
             p.ignoresMouseEvents=true;p.isOpaque=false;p.backgroundColor = .clear;p.hasShadow=false;p.level = .floating;p.isReleasedWhenClosed=false;p.hidesOnDeactivate=false
             p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle];p.isMovableByWindowBackground=false
             p.contentView=PetView(id:r.id,engine:self);panels[r.id]=p
-            if !paused {p.orderFrontRegardless()}
+        }
+        for r in state.residents {
+            panels[r.id]?.setFrameOrigin(NSPoint(x:r.x,y:r.y))
+            if paused || (r.live && visits[r.id]?.hidden != false) {panels[r.id]?.orderOut(nil)}
+            else if panels[r.id]?.isVisible != true {panels[r.id]?.orderFrontRegardless()}
         }
         dashboard?.refresh()
     }
     @objc func screenChanged() {
         guard let f=NSScreen.main?.visibleFrame else{return}
-        for i in state.residents.indices {state.residents[i].x=min(max(state.residents[i].x,f.minX),f.maxX-146);state.residents[i].y=min(max(state.residents[i].y,f.minY),f.maxY-140)}
+        for i in state.residents.indices {
+            if state.residents[i].live {visits[state.residents[i].id]=Visit()}
+            else {state.residents[i].x=min(max(state.residents[i].x,f.minX),f.maxX-146);state.residents[i].y=min(max(state.residents[i].y,f.minY),f.maxY-140)}
+        }
+        nextAppearance=Date().timeIntervalSince1970+8
+        if dashboard != nil {syncPanels()}
     }
     @objc func tick() {
         let now=Date().timeIntervalSince1970;let dt=min(0.1,now-frameTime);frameTime=now
         guard !paused else{return};tickCount+=1
+        advanceVisits(now,dt)
         for i in state.residents.indices {
-            var r=state.residents[i]
-            if r.live {
-                let factor=(r.flyingUntil>now ? 4.0 : 1.0)*(state.quiet ? 0.23 : 1.0)
-                r.x+=r.vx*dt*factor;r.y+=r.vy*dt*factor
-                let f=(NSScreen.screens.first{$0.frame.contains(NSPoint(x:r.x+73,y:r.y+70))} ?? NSScreen.main)?.visibleFrame ?? NSRect(x:0,y:0,width:1440,height:900)
-                if r.x<f.minX {r.x=f.minX;r.vx=abs(r.vx)}
-                if r.x>f.maxX-146 {r.x=f.maxX-146;r.vx = -abs(r.vx)}
-                if r.y<f.minY {r.y=f.minY;r.vy=abs(r.vy)}
-                if r.y>f.maxY-140 {r.y=f.maxY-140;r.vy = -abs(r.vy)}
-                if tickCount%150==0 && Int.random(in:0...3)==0 {r.vy=Double.random(in:-40...40);r.vx = -r.vx}
-                if r.kind == .baby && now-r.born>120 && !state.quiet {r.kind = .adult}
-                state.residents[i]=r
-            }
+            let r=state.residents[i]
+            if r.live && visits[r.id]?.hidden != false {continue}
             panels[r.id]?.setFrameOrigin(NSPoint(x:r.x,y:r.y));panels[r.id]?.contentView?.needsDisplay=true
             // Only the visible character captures clicks; the rest of the desktop remains usable.
-            let size:Double = r.kind == .baby ? 67 : r.kind == .egg ? 75 : 98
+            let size:Double = desktopSize(r.kind)
             let hit=NSRect(x:r.x+(146-size)/2,y:r.y+size*0.1,width:size,height:size*0.9)
             panels[r.id]?.ignoresMouseEvents = !hit.contains(NSEvent.mouseLocation)
         }
@@ -347,8 +393,8 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     func ecology(_ now:Double) {
         if let i=state.residents.firstIndex(where:{$0.kind == .egg && now-$0.born>55}),state.residents.count<maxResidents {
-            let egg=state.residents.remove(at:i)
-            spawn(.baby,at:NSPoint(x:egg.x,y:egg.y),taunt:true);spawn(.baby,at:NSPoint(x:egg.x,y:egg.y))
+            state.residents.remove(at:i)
+            spawn(.baby,taunt:true);spawn(.baby)
             tell("角落的卵孵化了。小旮杂：没想到吧？");syncPanels()
         }
         if state.residents.contains(where:{$0.live}) && now-lastHatch>75 {
@@ -359,7 +405,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if emptySince==0 {emptySince=now}
             if now-emptySince>24 {spawn(.baby,taunt:true);emptySince=0;tell("漏网之鱼：你以为电脑干净了？");syncPanels()}
         } else {emptySince=0}
-        if tickCount%1350==0 && state.residents.filter({$0.live}).count<8 {spawn(.baby,taunt:true);syncPanels()}
+
     }
     func checkFinder() {
         guard AXIsProcessTrusted(), let front=NSWorkspace.shared.frontmostApplication,front.bundleIdentifier=="com.apple.finder" else{return}
@@ -403,7 +449,17 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         sheet.unlockFocus()
         if let tiff=sheet.tiffRepresentation,let bitmap=NSBitmapImageRep(data:tiff) {try? bitmap.representation(using:.png,properties:[:])?.write(to:root.appendingPathComponent("Resources/characters.png"))}
-        print("RENDER: dashboard, icon and character sheet exported")
+        let desktop=NSImage(size:NSSize(width:520,height:180))
+        desktop.lockFocusFlipped(true)
+        paintRect(NSRect(x:0,y:0,width:520,height:180),cream)
+        label("桌面住客 · 缩小后的实际尺寸",20,15,size:14,weight:.semibold)
+        drawBug(in:NSRect(x:40,y:65,width:68,height:68),phase:0)
+        drawBug(in:NSRect(x:170,y:88,width:45,height:45),kind:.baby,phase:0)
+        menuPetIcon().draw(in:NSRect(x:330,y:95,width:23,height:22))
+        label("成虫 68 pt",36,140,size:12);label("幼体 45 pt",157,140,size:12);label("菜单栏图标",310,140,size:12)
+        desktop.unlockFocus()
+        if let tiff=desktop.tiffRepresentation,let bitmap=NSBitmapImageRep(data:tiff) {try? bitmap.representation(using:.png,properties:[:])?.write(to:root.appendingPathComponent("Resources/desktop-scale.png"))}
+        print("RENDER: dashboard, icon, character sheet and desktop sizes exported")
     }
     func integrationTest() {
         timer?.invalidate()
@@ -426,7 +482,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         precondition(state.residents.filter{$0.kind == .baby}.count==2)
         precondition(state.residents.filter{$0.kind == .egg}.count==1)
         state.tool = .vacuum
-        for id in state.residents.map({$0.id}) {interact(id)}
+        for id in state.residents.map({$0.id}) {if visits[id]?.hidden == true {beginVisit(id,now:now,from:NSPoint(x:200,y:200))};interact(id)}
         precondition(state.residents.isEmpty && panels.isEmpty)
         emptySince=now-25;ecology(now)
         precondition(state.residents.count==1 && state.residents[0].kind == .baby)
@@ -438,6 +494,38 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         for _ in 0..<100 {spawn(.adult)}
         precondition(state.residents.count==maxResidents)
         syncPanels();precondition(panels.count==maxResidents)
+        precondition(status.button?.image?.isTemplate == true)
+        window.miniaturize(nil)
+        let toolItem=status.menu!.items.first{($0.representedObject as? String)==Tool.cleaner.rawValue}!
+        menuTool(toolItem)
+        precondition(state.tool == .cleaner)
+        precondition(status.menu!.items.first{($0.representedObject as? String)==Tool.cleaner.rawValue}?.state == .on)
+        showDashboard()
+        precondition(!window.isMiniaturized && window.isVisible)
+        for r in state.residents where r.live {visits[r.id]=Visit()}
+        nextAppearance=now+30;syncPanels()
+        precondition(panels.values.allSatisfy{!$0.isVisible})
+        advanceVisits(now+10,1)
+        precondition(visibleLiveCount==0)
+        advanceVisits(now+31,0)
+        precondition(visibleLiveCount==1)
+        let guest=state.residents.first{visits[$0.id]?.hidden == false}!
+        precondition(panels[guest.id]?.isVisible == true)
+        let actual=panels[guest.id]!.frame.origin
+        precondition(abs(actual.x-guest.x)<=1 && abs(actual.y-guest.y)<=1,"Offscreen panel was constrained")
+        var departure=now+32
+        for step in 0..<1500 {
+            departure=now+32+Double(step)/30
+            advanceVisits(departure,1.0/30)
+            if visibleLiveCount==0 {break}
+        }
+        precondition(visibleLiveCount==0)
+        advanceVisits(departure+10,1)
+        precondition(visibleLiveCount==0)
+        precondition(panels.values.allSatisfy{!$0.isVisible})
+        togglePause();togglePause()
+        precondition(panels.values.allSatisfy{!$0.isVisible})
+        print("PASS: menu icon/tool selection while minimized, restore, hidden population, blank interval, edge visit, exit, pause preserves hiding")
         print("PASS: native window/panels, folder burst, poison spares eggs, hatch, vacuum removal, survivor, pause, focus, cap")
     }
     func load() {

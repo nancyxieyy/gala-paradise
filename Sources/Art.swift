@@ -72,3 +72,23 @@ func drawBug(in box: NSRect, kind: BugKind = .adult, phase: Double = 0, flying: 
     }
     NSGraphicsContext.restoreGraphicsState()
 }
+
+func menuPetIcon() -> NSImage {
+    let image=NSImage(size:NSSize(width:23,height:22),flipped:true) { _ in
+        oval(NSRect(x:5,y:7,width:14,height:13),.black)
+        line([NSPoint(x:9,y:9),NSPoint(x:7,y:2),NSPoint(x:5,y:1)],.black,1.5)
+        line([NSPoint(x:14,y:9),NSPoint(x:17,y:2),NSPoint(x:20,y:1)],.black,1.5)
+        for y in [11.0,15.0,18.0] {
+            line([NSPoint(x:6,y:y),NSPoint(x:2,y:y+2)],.black,1.2)
+            line([NSPoint(x:18,y:y),NSPoint(x:22,y:y+2)],.black,1.2)
+        }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current?.compositingOperation = .clear
+        oval(NSRect(x:8,y:10,width:3,height:4),.black)
+        oval(NSRect(x:13,y:10,width:3,height:4),.black)
+        NSGraphicsContext.restoreGraphicsState()
+        return true
+    }
+    image.isTemplate=true
+    return image
+}

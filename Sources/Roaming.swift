@@ -45,7 +45,7 @@ struct Visit {
     }
 }
 func desktopSize(_ kind:BugKind) -> CGFloat {
-    switch kind {case .baby:return 45;case .egg:return 52;default:return 68}
+    switch kind {case .mouse:return 104;case .catPaw:return 140;case .baby:return 45;case .egg:return 52;default:return 68}
 }
 func runRoamingTests() {
     let f=CGRect(x:-1440,y:40,width:1440,height:860)

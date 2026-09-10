@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <ApplicationIcon>Assets/AppIcon.ico</ApplicationIcon>
     <AssemblyName>GalaParadise</AssemblyName>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <Company>Gala Paradise</Company>
     <Product>旮旯乐园</Product>
     <Description>卡通桌宠 · Gala Paradise</Description>

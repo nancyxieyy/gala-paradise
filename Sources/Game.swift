@@ -7,7 +7,7 @@ enum Tool: String, Codable, CaseIterable {
     var threshold: Int { switch self { case .pinch: return 0; case .slipper: return 5; case .poison: return 12; case .vacuum: return 20; case .cleaner: return 28 } }
     var detail: String { switch self { case .pinch: return "一捏爆浆，留下奶油污渍"; case .slipper: return "啪！留下翻肚皮的小家伙"; case .poison: return "放药后，开文件夹都是躺平的"; case .vacuum: return "吸走小旮杂、尸体和角落的卵"; case .cleaner: return "擦掉爆浆，桌面终于干净了？" } }
 }
-enum BugKind: String, Codable { case adult, baby, egg, corpse, stain }
+enum BugKind: String, Codable { case adult, baby, egg, corpse, stain, gold, mouse, catPaw }
 struct Resident: Codable, Identifiable {
     var id = UUID()
     var kind: BugKind
@@ -18,9 +18,11 @@ struct Resident: Codable, Identifiable {
     var vy: Double = 0
     var flyingUntil: Double = 0
     var tauntUntil: Double = 0
-    var live: Bool { kind == .adult || kind == .baby }
+    var friend:Bool {kind == .mouse || kind == .catPaw}
+    var live: Bool { kind == .adult || kind == .baby || kind == .gold || friend }
 }
 struct GameState: Codable {
+    var progression:Progression?=Progression()
     var version = 1
     var xp = 0
     var captures = 0
@@ -32,22 +34,24 @@ struct GameState: Codable {
     var quiet = false
     var residents: [Resident] = []
     var lastSaved = Date().timeIntervalSince1970
-    var unlocked: [Tool] { Tool.allCases.filter { xp >= $0.threshold } }
+    var unlocked: [Tool] { progression?.owned ?? Tool.allCases.filter { xp >= $0.threshold } }
     var level: Int { min(5, xp / 10 + 1) }
     mutating func gain(_ amount: Int) { xp += amount }
     mutating func use(_ tool: Tool, on id: UUID, now: Double, flightRoll: Double) -> String {
-        guard xp >= tool.threshold else { return "还没解锁，先喂食或捉几只旮杂" }
+        guard unlocked.contains(tool) else { return "还没解锁，先喂食或捉几只旮杂" }
         guard let i = residents.firstIndex(where: { $0.id == id }) else { return "" }
         let kind = residents[i].kind
+        if residents[i].friend {return kind == .mouse ? "吱～新朋友只是路过" : "猫爪轻轻碰了碰你 ♡"}
         if residents[i].live {
             if tool == .cleaner { return "清洁剂只擦污渍，旮杂笑你了" }
-            if tool == .poison { return "药已放好，下次开文件夹见分晓" }
+            
             if residents[i].flyingUntil > now && tool != .vacuum { return "嘿嘿，打不到～等它落地，或用吸尘器" }
-            if kind == .adult && tool != .vacuum && flightRoll < 0.24 {
+            if (kind == .adult || kind == .gold) && tool != .vacuum && tool != .poison && flightRoll < 0.24 {
                 residents[i].flyingUntil = now + 2.8
                 residents[i].tauntUntil = now + 2.8
                 return "它居然起飞了！打不到～"
             }
+            if kind == .gold {migrateProgression();progression!.shells+=2}
             captures += 1; gain(2)
             if tool == .vacuum { residents.remove(at: i); return "咻——吸走一只旮杂" }
             residents[i].kind = tool == .pinch ? .stain : .corpse
@@ -65,7 +69,7 @@ struct GameState: Codable {
 }
 
 func runModelTests() {
-    var g = GameState()
+    var g = GameState();g.progression=nil
     precondition(g.unlocked == [.pinch])
     let r = Resident(kind: .adult, x: 100, y: 100, born: 0)
     g.residents = [r]
@@ -98,7 +102,8 @@ func runModelTests() {
     precondition(g.residents[0].kind == .stain)
     g.residents=[live]
     _ = g.use(.poison,on:live.id,now:20,flightRoll:0)
-    precondition(g.residents[0].kind == .adult)
+    precondition(g.residents[0].kind == .corpse)
+    g.residents=[live]
     _ = g.use(.cleaner,on:live.id,now:20,flightRoll:1)
     precondition(g.residents[0].kind == .adult)
     g.residents += [Resident(kind:.egg,x:70,y:50,born:9),Resident(kind:.stain,x:10,y:30,born:4)]

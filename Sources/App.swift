@@ -29,6 +29,7 @@ final class PetPanel: NSPanel {
 }
 final class EffectView:NSView {
     let tool:Tool
+    let born=Date().timeIntervalSince1970
     override var isFlipped:Bool {true}
     init(tool:Tool) {self.tool=tool;super.init(frame:NSRect(x:0,y:0,width:146,height:140))}
     required init?(coder:NSCoder) {fatalError()}
@@ -37,7 +38,7 @@ final class EffectView:NSView {
         switch tool {case .pinch:text="噗叽！";case .slipper:text="啪！";case .vacuum:text="咻——";case .cleaner:text="亮晶晶 ✧";case .poison:text="躺平。"}
         paintRect(NSRect(x:23,y:25,width:100,height:32),cream,radius:15,stroke:ink,width:2)
         label(text,35,30,size:16,weight:.heavy,c:tool == .slipper ? orange : moss,width:90)
-        if tool == .vacuum {
+        if tool == .poison {drawSpray(in:bounds,elapsed:Date().timeIntervalSince1970-born)} else if tool == .vacuum {
             for n in 0..<3 {line([NSPoint(x:25,y:70+CGFloat(n)*12),NSPoint(x:77,y:65+CGFloat(n)*9),NSPoint(x:106,y:75)],moss,2)}
         } else if tool == .slipper {
             oval(NSRect(x:91,y:67,width:24,height:51),color(0xE9AF6D),stroke:ink,width:2)
@@ -103,8 +104,8 @@ final class Dashboard: NSView {
     func refresh() {
         guard let e=engine else{return}
         for (tool,b) in tools {
-            let unlocked=e.state.xp>=tool.threshold
-            b.title=unlocked ? tool.title+(e.state.tool==tool ? "  ✓" : "") : tool.title + " · " + String(tool.threshold) + " 点"
+            let unlocked=e.state.unlocked.contains(tool)
+            b.title=unlocked ? tool.title+(e.state.tool==tool ? "  ✓" : "") : tool.title + " · " + String(tool.cost) + " 金壳"
             b.fillColor=e.state.tool==tool ? moss : unlocked ? color(0xE8E9DB) : color(0xEFEEE5)
             b.textColor=e.state.tool==tool ? cream : unlocked ? ink : color(0x96988B)
             b.needsDisplay=true
@@ -155,10 +156,10 @@ final class Dashboard: NSView {
         }
         line([NSPoint(x:40,y:641),NSPoint(x:940,y:641)],color(0xDDDECF),1)
         label("LV.\(g.level)  共生计划",40,660,size:12,weight:.bold,c:moss)
-        label("\(g.xp) 生长点",199,662,size:11,c:moss)
+        label("金壳 "+String(g.progression?.shells ?? 0),199,662,size:11,c:orange)
         paintRect(NSRect(x:40,y:686,width:234,height:5),color(0xDFE1D1),radius:2)
         paintRect(NSRect(x:40,y:686,width:234*min(1,CGFloat(g.xp)/28),height:5),moss,radius:2)
-        label(g.unlocked.count==5 ? "全工具已解锁 · 旮杂永远有下一招" : "下一件：\(Tool.allCases.first{$0.threshold>g.xp}!.title)",40,700,size:10,c:color(0x818572))
+        label(g.unlocked.count==5 ? "全工具已解锁 · 旮杂永远有下一招" : "下一件：\(Tool.allCases.first{!g.unlocked.contains($0)}?.title ?? "已全部兑换")",40,700,size:10,c:color(0x818572))
         label(e.message,300,665,size:12,weight:.medium,c:orange,width:302)
         label(g.tool.detail,300,689,size:10,c:color(0x818572),width:302)
         label("顶部蟑螂图标随时召回  ·  ⌘Q 退出  ·  污渍仅为桌宠图层",40,728,size:9,c:color(0x959887))
@@ -175,6 +176,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var status:NSStatusItem!
     var panels:[UUID:PetPanel]=[:]
     var visits:[UUID:Visit]=[:]
+    var nextGold=Date().timeIntervalSince1970+20
+    var nextMouse=Date().timeIntervalSince1970
+    var nextCat=Date().timeIntervalSince1970
     var nextAppearance=Date().timeIntervalSince1970+8
     var timer:Timer?
     var paused=false
@@ -191,6 +195,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var saveURL:URL { FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GalaParadise/save.json") }
     func applicationDidFinishLaunching(_ notification:Notification) {
         load()
+        state.migrateProgression()
         if !isTestRun,let data=try? Data(contentsOf:saveURL.deletingLastPathComponent().appendingPathComponent("habitat.json")),let restored=try? JSONDecoder().decode(Habitat.self,from:data) {habitat=restored;habitat.rate=[0.25,1,3].contains(habitat.rate) ? habitat.rate : 1}
         let menu=NSMenu(); let appItem=NSMenuItem(); menu.addItem(appItem); let appMenu=NSMenu(); appMenu.addItem(withTitle:"关于旮旯乐园",action:#selector(showDashboard),keyEquivalent:""); appMenu.addItem(.separator()); appMenu.addItem(withTitle:"退出旮旯乐园",action:#selector(NSApplication.terminate(_:)),keyEquivalent:"q"); appItem.submenu=appMenu; NSApp.mainMenu=menu
         window=NSWindow(contentRect:NSRect(x:0,y:0,width:980,height:748),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false)
@@ -212,12 +217,12 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func rebuildMenu() {
         let m=NSMenu()
         let heading=NSMenuItem(title:"当前工具："+state.tool.title,action:nil,keyEquivalent:"")
-        m.addItem(heading);m.addItem(.separator())
+        m.addItem(heading);m.addItem(withTitle:"黄金卵壳："+String(state.progression?.shells ?? 0),action:nil,keyEquivalent:"");m.addItem(withTitle:"新朋友："+(state.progression?.seen.isEmpty == false ? state.progression!.seen.map{$0 == "mouse" ? "老鼠" : "猫爪"}.joined(separator:"、") : "老鼠 3 分钟 / 猫爪 10 分钟"),action:nil,keyEquivalent:"");m.addItem(.separator())
         status.button?.toolTip="旮旯乐园 · 当前："+state.tool.title+" · 点击换工具"
         func item(_ title:String,_ action:Selector,_ key:String="") { let i=NSMenuItem(title:title,action:action,keyEquivalent:key); i.target=self; m.addItem(i) }
         item("打开旮旯乐园",#selector(showDashboard)); item("撒点面包屑  +3",#selector(feed)); item(paused ? "继续桌宠" : "暂停并隐藏桌宠",#selector(togglePause)); item(state.quiet ? "关闭专注模式" : "开启专注模式",#selector(toggleQuiet))
         m.addItem(.separator())
-        for t in Tool.allCases { let i=NSMenuItem(title:state.xp>=t.threshold ? t.title : "\(t.title)（\(t.threshold) 点解锁）",action:#selector(menuTool(_:)),keyEquivalent:""); i.target=self; i.representedObject=t.rawValue; i.image=NSImage(systemSymbolName:t.glyph,accessibilityDescription:t.title); i.state=state.tool==t ? .on : .off; m.addItem(i) }
+        for t in Tool.allCases { let i=NSMenuItem(title:state.unlocked.contains(t) ? t.title : "\(t.title)（\(t.cost) 金壳兑换）",action:#selector(menuTool(_:)),keyEquivalent:""); i.target=self; i.representedObject=t.rawValue; i.image=NSImage(systemSymbolName:t.glyph,accessibilityDescription:t.title); i.state=state.tool==t ? .on : .off; m.addItem(i) }
         if state.poisoned { item("收起蟑螂药",#selector(removePoison)) }
         m.addItem(.separator())
         let growth=NSMenuItem(title:"生长速度",action:nil,keyEquivalent:"");let rates=NSMenu()
@@ -229,8 +234,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func showGrowthMenu(){if let menu=status.menu?.items.first(where:{$0.title=="生长速度"})?.submenu {menu.popUp(positioning:nil,at:NSPoint(x:720,y:535),in:dashboard)}}
     @objc func changeRate(_ sender:NSMenuItem) {if let rate=sender.representedObject as? Double {habitat.rate=rate;save();rebuildMenu();tell("生长速度已调整为 "+String(rate)+"×")}}
     @objc func scan() {
-        let removed=state.residents.filter{$0.kind != .stain}.count
-        state.residents.removeAll{$0.kind != .stain};habitat.clean(now:Date().timeIntervalSince1970)
+        guard state.unlocked.contains(.poison) else {tell("兑换杀虫喷雾后，可使用全局扫描");return}
+        let removed=state.residents.filter{$0.kind != .stain && !$0.friend}.count
+        state.residents.removeAll{$0.kind != .stain && !$0.friend};habitat.clean(now:Date().timeIntervalSince1970)
         syncPanels();save();tell("扫描清走 "+String(removed)+" 个住客／卵，防护 5 分钟；污渍手动擦")
     }
     @objc func menuTool(_ sender:NSMenuItem) { if let raw=sender.representedObject as? String,let t=Tool(rawValue:raw) {select(t)} }
@@ -242,7 +248,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func applicationWillTerminate(_ notification:Notification) {save(); panels.values.forEach{$0.orderOut(nil)}}
     func tell(_ text:String) { message=text; dashboard?.refresh() }
     func select(_ tool:Tool) {
-        guard state.xp>=tool.threshold else {tell("还差 \(tool.threshold-state.xp) 点，喂食或捉旮杂来解锁"); return}
+        guard state.redeem(tool) else {tell("需要 "+String(tool.cost)+" 枚黄金卵壳，捕捉金色旮杂获得"); return}
         state.tool=tool
         if tool == .poison { state.poisoned=true; tell("药已放好。再打开文件夹，看看里面……") } else { tell("已拿起\(tool.title)。点击桌面上的目标") }
         save(); rebuildMenu(); dashboard.refresh()
@@ -270,7 +276,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             for i in state.residents.indices {state.residents[i].born+=delta;state.residents[i].flyingUntil+=delta;state.residents[i].tauntUntil+=delta}
             lastHatch+=delta;if emptySince>0 {emptySince+=delta}
             for id in Array(visits.keys) {visits[id]?.deadline+=delta}
-            nextAppearance+=delta
+            nextAppearance+=delta;nextGold+=delta;nextMouse+=delta;nextCat+=delta
             frameTime=now;syncPanels()
         }
         tell(paused ? "全体暂停并隐藏，可以安心办公" : "住客们回来啦"); rebuildMenu()
@@ -316,9 +322,10 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let msg=state.use(state.tool,on:id,now:Date().timeIntervalSince1970,flightRoll:Double.random(in:0...1))
         if state.unlocked.count>old {tell(msg+" · 新工具解锁！")} else {tell(msg)}
         if let index=state.residents.firstIndex(where:{$0.id==id}),!state.residents[index].live {visits.removeValue(forKey:id);entrances.removeValue(forKey:id)}
+        if before?.kind == .gold && state.residents.first(where:{$0.id==id})?.live != true {tell("获得 2 枚黄金卵壳 ✦ 点击锁定工具可兑换")}
         if let before=before {
             let after=state.residents.first{$0.id==id}
-            if after == nil || (before.live && after?.live == false) {showEffect(state.tool,at:NSPoint(x:before.x,y:before.y))}
+            if !before.friend && (state.tool == .poison || after == nil || (before.live && after?.live == false)) {showEffect(state.tool,at:NSPoint(x:before.x,y:before.y))}
         }
         save();syncPanels();rebuildMenu()
     }
@@ -328,6 +335,11 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         panel.isOpaque=false;panel.backgroundColor = .clear;panel.hasShadow=false;panel.ignoresMouseEvents=true;panel.level = .floating;panel.isReleasedWhenClosed=false;panel.hidesOnDeactivate=false
         panel.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
         panel.contentView=EffectView(tool:tool);panel.orderFrontRegardless()
+        if tool == .poison {
+            let timer=Timer.scheduledTimer(withTimeInterval:1.0/30,repeats:true){[weak panel] timer in guard let p=panel else{timer.invalidate();return};p.contentView?.needsDisplay=true}
+            DispatchQueue.main.asyncAfter(deadline:.now()+1.15){timer.invalidate();panel.close()}
+            return
+        }
         NSAnimationContext.runAnimationGroup({context in
             context.duration=0.55
             panel.animator().alphaValue=0
@@ -368,16 +380,17 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let id=state.residents[i].id
             if state.residents[i].kind == .baby && now-state.residents[i].born>120 && !state.quiet {state.residents[i].kind = .adult}
             guard var visit=visits[id],!visit.hidden else {continue}
-            let speed=(state.residents[i].flyingUntil>now ? 190.0 : 58.0)*(state.quiet ? 0.4 : 1)
+            let speed=(state.residents[i].kind == .mouse ? 145.0 : state.residents[i].kind == .catPaw ? 18.0 : state.residents[i].flyingUntil>now ? 190.0 : 58.0)*(state.quiet ? 0.4 : 1)
             visit.advance(&state.residents[i],now:now,dt:dt,speed:speed)
             visits[id]=visit
             if visit.hidden {nextAppearance=now+Double.random(in:22...45);changed=true}
             if state.residents[i].kind == .baby && now-state.residents[i].born>120 && !state.quiet {state.residents[i].kind = .adult}
         }
         if !state.quiet && now>=habitat.cleanUntil && visibleLiveCount==0 && now>=nextAppearance {
-            if let r=state.residents.filter({$0.live}).randomElement() {beginVisit(r.id,now:now);changed=true}
+            if let r=state.residents.filter({$0.live && !$0.friend}).randomElement() {beginVisit(r.id,now:now);changed=true}
             nextAppearance=now+Double.random(in:22...45)
         }
+        state.residents.removeAll{$0.friend && visits[$0.id]?.hidden == true}
         if changed {syncPanels()}
     }
     func syncPanels() {
@@ -409,6 +422,8 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let now=Date().timeIntervalSince1970;let dt=min(0.1,now-frameTime);frameTime=now
         guard !paused else{return};tickCount+=1
         if !state.quiet {for i in state.residents.indices where state.residents[i].kind == .egg || state.residents[i].kind == .baby {state.residents[i].born-=dt*(habitat.rate-1)}}
+        state.progression?.played+=dt
+        if !state.quiet {encounters(now)}
         advanceVisits(now,dt)
         for i in state.residents.indices {
             let r=state.residents[i]
@@ -425,6 +440,33 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         if tickCount%300==0 {save()}
     }
+    func encounters(_ now:Double){
+        guard now>=habitat.cleanUntil else{return}
+        if now>=nextGold {
+            nextGold=now+Double.random(in:45...90)
+            if let r=state.residents.first(where:{$0.kind == .gold && visits[$0.id]?.hidden == true}) {beginVisit(r.id,now:now)}
+            else if state.residents.filter({$0.kind == .gold}).count<2 {spawn(.gold,taunt:true);if let r=state.residents.last,r.kind == .gold {beginVisit(r.id,now:now)}}
+        }
+        let played=state.progression?.played ?? 0
+        if played>=180 && now>=nextMouse {
+            nextMouse=now+Double.random(in:120...240)
+            if state.residents.filter({$0.kind == .mouse}).count<2 {spawnFriend(.mouse,now:now)}
+        }
+        if played>=600 && now>=nextCat {
+            nextCat=now+Double.random(in:240...420)
+            if !state.residents.contains(where:{$0.kind == .catPaw}) {spawnFriend(.catPaw,now:now)}
+        }
+    }
+    func spawnFriend(_ kind:BugKind,now:Double){
+        let before=state.residents.count;spawn(kind)
+        guard state.residents.count>before,let r=state.residents.last,let screen=NSScreen.main else{return}
+        beginVisit(r.id,now:now)
+        let f=screen.frame
+        if kind == .mouse {state.residents[state.residents.count-1].x=f.minX-146;state.residents[state.residents.count-1].y=f.minY+120;visits[r.id]?.target=CGPoint(x:f.maxX,y:f.minY+120);visits[r.id]?.deadline=now+14}
+        else {state.residents[state.residents.count-1].x=f.maxX-90;state.residents[state.residents.count-1].y=f.minY+170;visits[r.id]?.target=CGPoint(x:f.maxX-150,y:f.minY+170);visits[r.id]?.deadline=now+5}
+        if state.progression?.seen.contains(kind.rawValue) == false {state.progression?.seen.append(kind.rawValue);tell(kind == .mouse ? "新朋友解锁：路过的小老鼠" : "新朋友解锁：一只探进来的猫爪")}
+        syncPanels();save()
+    }
     func ecology(_ now:Double) {
         guard now>=habitat.cleanUntil else{return}
         if let i=state.residents.firstIndex(where:{$0.kind == .egg && now-$0.born>55}),state.residents.count<maxResidents {
@@ -432,11 +474,11 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             spawn(.baby,taunt:true);spawn(.baby)
             tell("角落的卵孵化了。小旮杂：没想到吧？");syncPanels()
         }
-        if state.residents.contains(where:{$0.live}) && now-lastHatch>75/habitat.rate {
+        if state.residents.contains(where:{$0.live && !$0.friend}) && now-lastHatch>75/habitat.rate {
             lastHatch=now
             if state.residents.filter({$0.kind == .egg}).count<5 {spawn(.egg);syncPanels()}
         }
-        if !state.residents.contains(where:{$0.live}) {
+        if !state.residents.contains(where:{$0.live && !$0.friend}) {
             if emptySince==0 {emptySince=now}
             if now-emptySince>24 {spawn(.baby,taunt:true);emptySince=0;tell("漏网之鱼：你以为电脑干净了？");syncPanels()}
         } else {emptySince=0}
@@ -499,11 +541,20 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         label("成虫 68 pt",36,140,size:12);label("幼体 45 pt",157,140,size:12);label("菜单栏图标",310,140,size:12)
         desktop.unlockFocus()
         if let tiff=desktop.tiffRepresentation,let bitmap=NSBitmapImageRep(data:tiff) {try? bitmap.representation(using:.png,properties:[:])?.write(to:root.appendingPathComponent("Resources/desktop-scale.png"))}
-        print("RENDER: dashboard, icon, character sheet and desktop sizes exported")
+        let friends=NSImage(size:NSSize(width:1000,height:260));friends.lockFocusFlipped(true)
+        paintRect(NSRect(x:0,y:0,width:1000,height:260),cream)
+        drawBug(in:NSRect(x:20,y:20,width:180,height:180),kind:.gold)
+        drawFriend(in:NSRect(x:250,y:40,width:190,height:160),cat:false,phase:0)
+        drawFriend(in:NSRect(x:490,y:15,width:230,height:210),cat:true,phase:0)
+        let shift=AffineTransform(translationByX:790,byY:40);(shift as NSAffineTransform).concat();drawSpray(in:NSRect(x:0,y:0,width:146,height:140));let undo=AffineTransform(translationByX:-790,byY:-40);(undo as NSAffineTransform).concat()
+        for (i,text) in ["黄金旮杂 · +2 金壳","小老鼠 · 3 分钟","探进来的猫爪 · 10 分钟","手持喷雾 · 泡沫"].enumerated(){label(text,CGFloat(i)*250+30,227,size:14,weight:.semibold)}
+        friends.unlockFocus()
+        if let tiff=friends.tiffRepresentation,let bitmap=NSBitmapImageRep(data:tiff){try? bitmap.representation(using:.png,properties:[:])?.write(to:root.appendingPathComponent("Resources/new-friends.png"))}
+        print("RENDER: dashboard, characters, desktop sizes and new friends exported")
     }
     func integrationTest() {
         timer?.invalidate()
-        state=GameState();syncPanels()
+        state=GameState();state.progression=nil;syncPanels()
         for tool in Tool.allCases {precondition(dashboard.tools[tool]!.title.contains(tool.title))}
         dashboard.tools[.slipper]!.performClick(nil)
         precondition(state.tool == .pinch)
@@ -511,7 +562,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         precondition(state.residents.filter{$0.live}.count==2)
         precondition(state.residents.filter{$0.kind == .egg}.count==1)
         precondition(panels.count==3)
-        state.xp=28;dashboard.tools[.poison]!.performClick(nil);lastFolder=0
+        state.xp=28;state.progression=nil;dashboard.tools[.poison]!.performClick(nil);lastFolder=0
         precondition(state.tool == .poison && state.poisoned)
         folderBurst(name:"投药测试",at:nil)
         precondition(state.residents.filter{$0.kind == .corpse}.count==2)
@@ -570,6 +621,13 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         state.residents=[Resident(kind:.stain,x:200,y:200,born:now),Resident(kind:.egg,x:100,y:100,born:now)]
         scan();precondition(state.residents.count==1 && state.residents[0].kind == .stain)
         ecology(Date().timeIntervalSince1970+2);precondition(state.residents.count==1)
+        habitat.cleanUntil=0;state.residents=[];state.progression=Progression();state.progression!.played=179;nextGold=now+10000;nextMouse=0;nextCat=0
+        encounters(now);precondition(!state.residents.contains(where:{$0.friend}))
+        state.progression!.played=180;encounters(now+1);precondition(state.residents.filter{$0.kind == .mouse}.count==1)
+        state.progression!.played=600;encounters(now+2);precondition(state.residents.filter{$0.kind == .catPaw}.count==1)
+        encounters(now+3);precondition(state.residents.filter{$0.friend}.count==2)
+        precondition(state.progression!.seen.count==2)
+        print("PASS: mouse/cat playtime discovery and encounter cooldowns")
         print("PASS: growth menu and scan protection preserve manual stain cleanup")
         print("PASS: menu icon/tool selection while minimized, restore, hidden population, blank interval, edge visit, exit, pause preserves hiding")
         print("PASS: native window/panels, folder burst, poison spares eggs, hatch, vacuum removal, survivor, pause, focus, cap")
@@ -577,7 +635,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func load() {
         if isTestRun {return}
         guard let data=try? Data(contentsOf:saveURL) else{return}
-        do {state=try JSONDecoder().decode(GameState.self,from:data);state.residents=Array(state.residents.prefix(maxResidents)); if state.xp<state.tool.threshold {state.tool = .pinch};screenChanged()} catch {message="存档暂时无法读取，本次从新乐园开始"}
+        do {state=try JSONDecoder().decode(GameState.self,from:data);if state.progression==nil {let backup=saveURL.deletingLastPathComponent().appendingPathComponent("save.before-1.4.json");if !FileManager.default.fileExists(atPath:backup.path){try? data.write(to:backup,options:.atomic)}};state.residents=Array(state.residents.prefix(maxResidents)); state.migrateProgression();screenChanged()} catch {message="存档暂时无法读取，本次从新乐园开始"}
         lastHatch=Date().timeIntervalSince1970
     }
     func save() {

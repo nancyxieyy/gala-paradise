@@ -24,6 +24,7 @@ func label(_ text: String, _ x: CGFloat, _ y: CGFloat, size: CGFloat = 14, weigh
 // Original vector character: bean body, oversized googly eyes, loose antennae.
 // Coordinates are in a flipped 140 × 140 space.
 func drawBug(in box: NSRect, kind: BugKind = .adult, phase: Double = 0, flying: Bool = false, facing: Double = 1) {
+    if kind == .mouse || kind == .catPaw {drawFriend(in:box,cat:kind == .catPaw,phase:phase,facing:facing);return}
     NSGraphicsContext.saveGraphicsState()
     let t = AffineTransform(translationByX: box.minX, byY: box.minY); (t as NSAffineTransform).concat()
     let s = AffineTransform(scaleByX: box.width/140, byY: box.height/140); (s as NSAffineTransform).concat()
@@ -55,9 +56,9 @@ func drawBug(in box: NSRect, kind: BugKind = .adult, phase: Double = 0, flying: 
             oval(NSRect(x: 73, y: 35, width: 64, height: 49-wiggle), color(0xE9F3DD,0.88), stroke: ink)
         }
         let body = NSBezierPath(); body.move(to: NSPoint(x: 24,y: 70)); body.curve(to: NSPoint(x:117,y:53),controlPoint1:NSPoint(x:37,y:23),controlPoint2:NSPoint(x:86,y:27)); body.curve(to:NSPoint(x:116,y:104),controlPoint1:NSPoint(x:135,y:66),controlPoint2:NSPoint(x:125,y:87)); body.curve(to:NSPoint(x:32,y:110),controlPoint1:NSPoint(x:94,y:127),controlPoint2:NSPoint(x:49,y:122)); body.close()
-        color(0xA2653D).setFill(); body.fill(); ink.setStroke(); body.lineWidth=3.5; body.stroke()
+        (kind == .gold ? color(0xE9BC3E) : color(0xA2653D)).setFill(); body.fill(); ink.setStroke(); body.lineWidth=3.5; body.stroke()
         let wing = NSBezierPath(); wing.move(to:NSPoint(x:78,y:39)); wing.curve(to:NSPoint(x:106,y:99),controlPoint1:NSPoint(x:101,y:48),controlPoint2:NSPoint(x:112,y:79)); color(0x76492F).setStroke(); wing.lineWidth=2.5; wing.stroke()
-        oval(NSRect(x: 20,y:64,width:85,height:53),color(0x985B38),stroke:ink,width:3.5)
+        oval(NSRect(x: 20,y:64,width:85,height:53),kind == .gold ? color(0xD5A528) : color(0x985B38),stroke:ink,width:3.5)
         for n in 0..<2 {
             let x = CGFloat(n)*42+22
             oval(NSRect(x:x,y:69,width:43,height:42),.white,stroke:ink,width:3.2)
@@ -91,4 +92,41 @@ func menuPetIcon() -> NSImage {
     }
     image.isTemplate=true
     return image
+}
+
+func drawSpray(in box:NSRect,elapsed:Double=0){
+    if elapsed<0.65 {
+    // A hand gripping a small bottle, mist, then soft foam.
+    paintRect(NSRect(x:86,y:54,width:24,height:51),color(0xA8C3A0),radius:7,stroke:ink,width:2)
+    paintRect(NSRect(x:86,y:49,width:21,height:9),ink,radius:3)
+    paintRect(NSRect(x:79,y:47,width:13,height:6),ink,radius:2)
+    oval(NSRect(x:96,y:75,width:24,height:18),color(0xEDC5A6),stroke:ink)
+    line([NSPoint(x:119,y:83),NSPoint(x:144,y:109)],color(0xEDC5A6),15)
+    for i in 0..<5 {line([NSPoint(x:77,y:53),NSPoint(x:39,y:42+CGFloat(i)*9)],color(0xBFD9DA),1.5)}
+    }
+    for i in 0..<9 {oval(NSRect(x:25+CGFloat(i%4)*12,y:65+CGFloat(i/4)*10,width:17,height:16),color(0xE8F3E8),stroke:color(0xBED5BE),width:1)}
+}
+func drawFriend(in box:NSRect,cat:Bool,phase:Double,facing:Double=1){
+    NSGraphicsContext.saveGraphicsState()
+    let t=AffineTransform(translationByX:box.minX,byY:box.minY);(t as NSAffineTransform).concat()
+    let scale=AffineTransform(scaleByX:box.width/140,byY:box.height/140);(scale as NSAffineTransform).concat()
+    if !cat && facing>0 {let flip=AffineTransform(translationByX:140,byY:0);(flip as NSAffineTransform).concat();let mirror=AffineTransform(scaleByX:-1,byY:1);(mirror as NSAffineTransform).concat()}
+    if cat {
+        paintRect(NSRect(x:78,y:28,width:66,height:88),color(0xE0AD78),radius:25,stroke:ink,width:3)
+        oval(NSRect(x:18,y:37,width:95,height:82),color(0xEBC18D),stroke:ink,width:3)
+        for n in 0..<4 {oval(NSRect(x:18+CGFloat(n)*21,y:36,width:28,height:36),color(0xF0CB9F),stroke:ink,width:2)}
+        oval(NSRect(x:43,y:78,width:46,height:28),color(0xD99396))
+        for n in 0..<3 {oval(NSRect(x:31+CGFloat(n)*22,y:57,width:14,height:17),color(0xD99396))}
+    } else {
+        let wig=sin(phase*12)*4
+        let tail=NSBezierPath();tail.move(to:NSPoint(x:89,y:88));tail.curve(to:NSPoint(x:138,y:70+wig),controlPoint1:NSPoint(x:122,y:120),controlPoint2:NSPoint(x:139,y:105));color(0xCB9B9C).setStroke();tail.lineWidth=4;tail.stroke()
+        for x in [45.0,86.0] {line([NSPoint(x:x,y:99),NSPoint(x:x+wig,y:113)],ink,4)}
+        oval(NSRect(x:32,y:64,width:75,height:43),color(0xA9AAA8),stroke:ink,width:3)
+        oval(NSRect(x:10,y:70,width:53,height:34),color(0xB8BAB5),stroke:ink,width:3)
+        oval(NSRect(x:31,y:49,width:30,height:32),color(0xB8BAB5),stroke:ink,width:2)
+        oval(NSRect(x:38,y:55,width:16,height:20),color(0xDFAEB0))
+        oval(NSRect(x:20,y:80,width:7,height:8),ink);oval(NSRect(x:6,y:91,width:9,height:7),color(0xC7818C))
+        line([NSPoint(x:17,y:94),NSPoint(x:0,y:90)],ink,1);line([NSPoint(x:17,y:97),NSPoint(x:0,y:103)],ink,1)
+    }
+    NSGraphicsContext.restoreGraphicsState()
 }

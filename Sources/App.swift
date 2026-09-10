@@ -60,9 +60,9 @@ final class PetView: NSView {
         let size: CGFloat = desktopSize(r.kind)
         if let entry=e.entrances[id],now<entry.until {
             let clip=NSBezierPath(rect:bounds);clip.windingRule = .evenOdd
-            clip.appendRect(NSRect(x:entry.frame.minX-r.x,y:140-entry.frame.maxY+r.y,width:entry.frame.width,height:entry.frame.height));clip.addClip()
+            clip.appendRect(NSRect(x:entry.frame.minX-r.x,y:bounds.height-entry.frame.maxY+r.y,width:entry.frame.width,height:entry.frame.height));clip.addClip()
         }
-        drawBug(in:NSRect(x:(146-size)/2,y:140-size,width:size,height:size),kind:r.kind,phase:now,flying:r.flyingUntil>now,facing:r.vx>=0 ? 1 : -1)
+        drawBug(in:NSRect(x:(bounds.width-size)/2,y:bounds.height-size,width:size,height:size),kind:r.kind,phase:now,flying:r.flyingUntil>now,facing:r.vx>=0 ? 1 : -1)
         if r.tauntUntil>now {
             paintRect(NSRect(x:3,y:7,width:140,height:27),cream,radius:12,stroke:ink)
             label(r.flyingUntil>now ? "打不到～我会飞！" : "你以为没有了？",13,11,size:11,weight:.semibold,width:128)
@@ -368,7 +368,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let frame: CGRect
         if let p=point {frame=(NSScreen.screens.first{$0.frame.contains(p)} ?? screen).frame} else {frame=screen.frame}
         let edge=Int.random(in:0..<4)
-        let start=point ?? Visit.edgePoint(edge,in:frame,fraction:Double.random(in:0.18...0.82))
+        let start=point ?? Visit.edgePoint(edge,in:frame,fraction:Double.random(in:0.18...0.82),kind:state.residents[i].kind)
         state.residents[i].x=start.x;state.residents[i].y=start.y
         // Cross a short stretch of the current desktop, then slip back out of view.
         let target=CGPoint(x:frame.minX+frame.width*Double.random(in:0.25...0.75)-73,y:frame.minY+frame.height*Double.random(in:0.2...0.7)-35)
@@ -397,7 +397,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let ids=Set(state.residents.map{$0.id})
         for id in Array(panels.keys) where !ids.contains(id) {panels[id]?.close();panels.removeValue(forKey:id);visits.removeValue(forKey:id);entrances.removeValue(forKey:id)}
         for r in state.residents where panels[r.id]==nil {
-            let p=PetPanel(contentRect:NSRect(x:r.x,y:r.y,width:146,height:140),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            let p=PetPanel(contentRect:NSRect(x:r.x,y:r.y,width:petCanvas(r.kind).width,height:petCanvas(r.kind).height),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
             p.ignoresMouseEvents=true;p.isOpaque=false;p.backgroundColor = .clear;p.hasShadow=false;p.level = .floating;p.isReleasedWhenClosed=false;p.hidesOnDeactivate=false
             p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle];p.isMovableByWindowBackground=false
             p.contentView=PetView(id:r.id,engine:self);panels[r.id]=p
@@ -431,7 +431,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             panels[r.id]?.setFrameOrigin(NSPoint(x:r.x,y:r.y));panels[r.id]?.contentView?.needsDisplay=true
             // Only the visible character captures clicks; the rest of the desktop remains usable.
             let size:Double = desktopSize(r.kind)
-            let hit=NSRect(x:r.x+(146-size)/2,y:r.y+size*0.1,width:size,height:size*0.9)
+            let hit=NSRect(x:r.x+(petCanvas(r.kind).width-size)/2,y:r.y+size*0.1,width:size,height:size*0.9)
             panels[r.id]?.ignoresMouseEvents = !hit.contains(NSEvent.mouseLocation) || (entrances[r.id].map{now<$0.until && $0.frame.contains(NSEvent.mouseLocation)} ?? false)
         }
         if tickCount%30==0 {
@@ -462,7 +462,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard state.residents.count>before,let r=state.residents.last,let screen=NSScreen.main else{return}
         beginVisit(r.id,now:now)
         let f=screen.frame
-        if kind == .mouse {state.residents[state.residents.count-1].x=f.minX-146;state.residents[state.residents.count-1].y=f.minY+120;visits[r.id]?.target=CGPoint(x:f.maxX,y:f.minY+120);visits[r.id]?.deadline=now+14}
+        if kind == .mouse {state.residents[state.residents.count-1].x=f.minX-petCanvas(kind).width;state.residents[state.residents.count-1].y=f.minY+120;visits[r.id]?.target=CGPoint(x:f.maxX,y:f.minY+120);visits[r.id]?.deadline=now+14}
         else {state.residents[state.residents.count-1].x=f.maxX-90;state.residents[state.residents.count-1].y=f.minY+170;visits[r.id]?.target=CGPoint(x:f.maxX-150,y:f.minY+170);visits[r.id]?.deadline=now+5}
         if state.progression?.seen.contains(kind.rawValue) == false {state.progression?.seen.append(kind.rawValue);tell(kind == .mouse ? "新朋友解锁：路过的小老鼠" : "新朋友解锁：一只探进来的猫爪")}
         syncPanels();save()
@@ -544,12 +544,21 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let friends=NSImage(size:NSSize(width:1000,height:260));friends.lockFocusFlipped(true)
         paintRect(NSRect(x:0,y:0,width:1000,height:260),cream)
         drawBug(in:NSRect(x:20,y:20,width:180,height:180),kind:.gold)
-        drawFriend(in:NSRect(x:250,y:40,width:190,height:160),cat:false,phase:0)
+        drawFriend(in:NSRect(x:230,y:0,width:230,height:230),cat:false,phase:0)
         drawFriend(in:NSRect(x:490,y:15,width:230,height:210),cat:true,phase:0)
         let shift=AffineTransform(translationByX:790,byY:40);(shift as NSAffineTransform).concat();drawSpray(in:NSRect(x:0,y:0,width:146,height:140));let undo=AffineTransform(translationByX:-790,byY:-40);(undo as NSAffineTransform).concat()
         for (i,text) in ["黄金旮杂 · +2 金壳","小老鼠 · 3 分钟","探进来的猫爪 · 10 分钟","手持喷雾 · 泡沫"].enumerated(){label(text,CGFloat(i)*250+30,227,size:14,weight:.semibold)}
         friends.unlockFocus()
         if let tiff=friends.tiffRepresentation,let bitmap=NSBitmapImageRep(data:tiff){try? bitmap.representation(using:.png,properties:[:])?.write(to:root.appendingPathComponent("Resources/new-friends.png"))}
+        let mouse=NSImage(size:NSSize(width:600,height:300));mouse.lockFocusFlipped(true)
+        paintRect(NSRect(x:0,y:0,width:600,height:300),cream)
+        label("新朋友 · 圆耳鼠",30,22,size:22,weight:.bold)
+        drawFriend(in:NSRect(x:40,y:60,width:240,height:240),cat:false,phase:0)
+        drawBug(in:NSRect(x:350,y:130,width:68,height:68),phase:0)
+        drawFriend(in:NSRect(x:425,y:55,width:170,height:170),cat:false,phase:0)
+        label("同画风 · 桌面尺寸对比",340,245,size:14,weight:.semibold)
+        mouse.unlockFocus()
+        if let tiff=mouse.tiffRepresentation,let bitmap=NSBitmapImageRep(data:tiff){try? bitmap.representation(using:.png,properties:[:])?.write(to:root.appendingPathComponent("Resources/mouse-preview.png"))}
         print("RENDER: dashboard, characters, desktop sizes and new friends exported")
     }
     func integrationTest() {
@@ -627,6 +636,11 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         state.progression!.played=600;encounters(now+2);precondition(state.residents.filter{$0.kind == .catPaw}.count==1)
         encounters(now+3);precondition(state.residents.filter{$0.friend}.count==2)
         precondition(state.progression!.seen.count==2)
+        syncPanels()
+        let mouseResident=state.residents.first{$0.kind == .mouse}!
+        precondition(panels[mouseResident.id]!.contentView!.bounds.size == petCanvas(.mouse))
+        precondition(desktopSize(.mouse) < panels[mouseResident.id]!.frame.width)
+        print("PASS: mouse canvas fits enlarged art")
         print("PASS: mouse/cat playtime discovery and encounter cooldowns")
         print("PASS: growth menu and scan protection preserve manual stain cleanup")
         print("PASS: menu icon/tool selection while minimized, restore, hidden population, blank interval, edge visit, exit, pause preserves hiding")

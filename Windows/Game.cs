@@ -9,7 +9,8 @@ public static class Rules {
     public static readonly int[] Cost=[0,2,4,6,5];
     public static readonly int[] Unlock=[0,5,12,20,28];
     public static readonly string[] Details=["噗叽！会留奶油污渍","啪！但它可能会飞","开文件夹时批量躺平","活的、死的、卵，都能吸","最后一步：把污渍擦掉"];
-    public static float Size(Kind k)=>k==Kind.Mouse?100:k==Kind.CatPaw?110:k==Kind.Baby?45:k==Kind.Egg?52:68;
+    public static int Canvas(Kind k)=>k==Kind.Mouse?182:110;
+    public static float Size(Kind k)=>k==Kind.Mouse?170:k==Kind.CatPaw?110:k==Kind.Baby?45:k==Kind.Egg?52:68;
 }
 public class Resident {
     public Guid Id {get;set;}=Guid.NewGuid();
@@ -74,8 +75,8 @@ public class Game {
     }
     public void BeginVisit(Resident r,double now,PointF? origin=null){
         var f=origin.HasValue?Screens.FirstOrDefault(s=>s.Contains(Point.Round(origin.Value)),Screens[0]):Screens[rng.Next(Screens.Length)];r.Screen=f;
-        int edge=rng.Next(4);r.X=edge==0?f.Left-110:edge==1?f.Right:f.Left+(float)Range(.2,.8)*f.Width;
-        r.Y=edge==2?f.Top-110:edge==3?f.Bottom:f.Top+(float)Range(.2,.8)*f.Height;
+        int edge=rng.Next(4);r.X=edge==0?f.Left-Rules.Canvas(r.Kind):edge==1?f.Right:f.Left+(float)Range(.2,.8)*f.Width;
+        r.Y=edge==2?f.Top-Rules.Canvas(r.Kind):edge==3?f.Bottom:f.Top+(float)Range(.2,.8)*f.Height;
         if(origin.HasValue){r.X=origin.Value.X;r.Y=origin.Value.Y;}
         r.TargetX=f.Left+(float)Range(.25,.75)*f.Width;r.TargetY=f.Top+(float)Range(.2,.7)*f.Height;
         r.Hidden=false;r.Exiting=false;r.ExitAt=now+Range(9,16);
@@ -87,7 +88,7 @@ public class Game {
         foreach(var r in State.Residents.Where(r=>r.Live)){
             if(r.Kind==Kind.Baby&&now-r.Born>120&&!State.Quiet)r.Kind=Kind.Adult;
             if(r.Hidden)continue;
-            if(!r.Exiting&&now>=r.ExitAt){r.Exiting=true;var f=r.Screen;PointF[] exits=[new(f.Left-110,r.Y),new(f.Right,r.Y),new(r.X,f.Top-110),new(r.X,f.Bottom)];var p=exits.MinBy(p=>MathF.Abs(p.X-r.X)+MathF.Abs(p.Y-r.Y));r.TargetX=p.X;r.TargetY=p.Y;}
+            if(!r.Exiting&&now>=r.ExitAt){r.Exiting=true;var f=r.Screen;PointF[] exits=[new(f.Left-Rules.Canvas(r.Kind),r.Y),new(f.Right,r.Y),new(r.X,f.Top-Rules.Canvas(r.Kind)),new(r.X,f.Bottom)];var p=exits.MinBy(p=>MathF.Abs(p.X-r.X)+MathF.Abs(p.Y-r.Y));r.TargetX=p.X;r.TargetY=p.Y;}
             float dx=r.TargetX-r.X,dy=r.TargetY-r.Y,d=MathF.Sqrt(dx*dx+dy*dy);r.Direction=dx>=0?1:-1;
             float step=(float)(dt*(r.Kind==Kind.Mouse?145:r.Kind==Kind.CatPaw?18:r.FlyingUntil>now?190:58)*(State.Quiet ? 0.4 : 1));
             if(d<=Math.Max(1,step)){r.X=r.TargetX;r.Y=r.TargetY;if(r.Exiting){r.Hidden=true;NextAppearance=now+Range(22,45);}}
@@ -108,7 +109,7 @@ public class Game {
         if(State.Progression.Played>=600&&now>=nextCat){nextCat=now+Range(240,420);if(!State.Residents.Any(r=>r.Kind==Kind.CatPaw))SpawnFriend(Kind.CatPaw,now);}
     }
     void SpawnFriend(Kind kind,double now){var r=Spawn(kind,now);if(r==null)return;BeginVisit(r,now);var f=r.Screen;
-        if(kind==Kind.Mouse){r.X=f.Left-110;r.Y=f.Bottom-200;r.TargetX=f.Right;r.TargetY=r.Y;r.ExitAt=now+14;}
+        if(kind==Kind.Mouse){r.X=f.Left-Rules.Canvas(r.Kind);r.Y=f.Bottom-200;r.TargetX=f.Right;r.TargetY=r.Y;r.ExitAt=now+14;}
         else{r.X=f.Right-40;r.Y=f.Top+200;r.TargetX=f.Right-100;r.TargetY=r.Y;r.ExitAt=now+5;}
         if(!State.Progression.Seen.Contains(kind.ToString())){State.Progression.Seen.Add(kind.ToString());Message=kind==Kind.Mouse?"新朋友解锁：路过的小老鼠":"新朋友解锁：一只探进来的猫爪";}
     }

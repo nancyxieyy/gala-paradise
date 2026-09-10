@@ -118,15 +118,26 @@ func drawFriend(in box:NSRect,cat:Bool,phase:Double,facing:Double=1){
         oval(NSRect(x:43,y:78,width:46,height:28),color(0xD99396))
         for n in 0..<3 {oval(NSRect(x:31+CGFloat(n)*22,y:57,width:14,height:17),color(0xD99396))}
     } else {
-        let wig=sin(phase*12)*4
-        let tail=NSBezierPath();tail.move(to:NSPoint(x:89,y:88));tail.curve(to:NSPoint(x:138,y:70+wig),controlPoint1:NSPoint(x:122,y:120),controlPoint2:NSPoint(x:139,y:105));color(0xCB9B9C).setStroke();tail.lineWidth=4;tail.stroke()
-        for x in [45.0,86.0] {line([NSPoint(x:x,y:99),NSPoint(x:x+wig,y:113)],ink,4)}
-        oval(NSRect(x:32,y:64,width:75,height:43),color(0xA9AAA8),stroke:ink,width:3)
-        oval(NSRect(x:10,y:70,width:53,height:34),color(0xB8BAB5),stroke:ink,width:3)
-        oval(NSRect(x:31,y:49,width:30,height:32),color(0xB8BAB5),stroke:ink,width:2)
-        oval(NSRect(x:38,y:55,width:16,height:20),color(0xDFAEB0))
-        oval(NSRect(x:20,y:80,width:7,height:8),ink);oval(NSRect(x:6,y:91,width:9,height:7),color(0xC7818C))
-        line([NSPoint(x:17,y:94),NSPoint(x:0,y:90)],ink,1);line([NSPoint(x:17,y:97),NSPoint(x:0,y:103)],ink,1)
+        let wig=sin(phase*12)*3
+        let tail=NSBezierPath();tail.move(to:NSPoint(x:99,y:100));tail.curve(to:NSPoint(x:134,y:70+wig),controlPoint1:NSPoint(x:132,y:126),controlPoint2:NSPoint(x:137,y:103));ink.setStroke();tail.lineWidth=7;tail.stroke();color(0xDCA3A0).setStroke();tail.lineWidth=4;tail.stroke()
+        oval(NSRect(x:18,y:112,width:94,height:12),color(0x765845,0.16))
+        for x in [36.0,87.0] {oval(NSRect(x:x+wig,y:108,width:19,height:11),color(0xDCA3A0),stroke:ink,width:3)}
+        oval(NSRect(x:51,y:29,width:33,height:38),color(0xA9978C),stroke:ink,width:3.5)
+        oval(NSRect(x:58,y:36,width:19,height:23),color(0xDCA3A0))
+        oval(NSRect(x:23,y:51,width:91,height:65),color(0xA9978C),stroke:ink,width:4)
+        oval(NSRect(x:25,y:75,width:69,height:38),color(0xC6B7A6))
+        oval(NSRect(x:18,y:25,width:40,height:44),color(0xB7A698),stroke:ink,width:4)
+        oval(NSRect(x:26,y:33,width:24,height:28),color(0xE6B4AE))
+        oval(NSRect(x:87,y:62,width:13,height:7),color(0xD3C3B4))
+        oval(NSRect(x:100,y:72,width:5,height:5),color(0xD3C3B4))
+        oval(NSRect(x:9,y:67,width:33,height:37),.white,stroke:ink,width:3.5)
+        oval(NSRect(x:37,y:64,width:43,height:42),.white,stroke:ink,width:3.5)
+        oval(NSRect(x:16,y:80,width:8,height:12),ink)
+        oval(NSRect(x:47,y:79,width:9,height:13),ink)
+        oval(NSRect(x:6,y:98,width:14,height:10),color(0xD68F96),stroke:ink,width:2.5)
+        line([NSPoint(x:24,y:108),NSPoint(x:30,y:111),NSPoint(x:37,y:108)],ink,2)
+        line([NSPoint(x:16,y:103),NSPoint(x:1,y:97)],ink,1.5)
+        line([NSPoint(x:17,y:108),NSPoint(x:2,y:113)],ink,1.5)
     }
     NSGraphicsContext.restoreGraphicsState()
 }

@@ -6,20 +6,20 @@ sealed class PetWindow:Form {
     public bool LastRenderOK;
     public Tool? EffectTool;public double EffectBorn;
     readonly Action<Guid> use;
-    public PetWindow(Resident r,Action<Guid> use){Resident=r;this.use=use;FormBorderStyle=FormBorderStyle.None;ShowInTaskbar=false;TopMost=true;AutoScaleMode=AutoScaleMode.None;ClientSize=new(110,110);StartPosition=FormStartPosition.Manual;}
+    public PetWindow(Resident r,Action<Guid> use){Resident=r;this.use=use;FormBorderStyle=FormBorderStyle.None;ShowInTaskbar=false;TopMost=true;AutoScaleMode=AutoScaleMode.None;ClientSize=new(Rules.Canvas(r.Kind),Rules.Canvas(r.Kind));StartPosition=FormStartPosition.Manual;}
     protected override bool ShowWithoutActivation=>true;
     protected override CreateParams CreateParams{get{var p=base.CreateParams;p.ExStyle|=0x80000|0x80|0x08000000;if(EffectTool.HasValue)p.ExStyle|=0x20;return p;}}
     protected override void OnMouseDown(MouseEventArgs e){if(e.Button==MouseButtons.Left)use(Resident.Id);}
     public void Render(double now){
-        using var bmp=new Bitmap(110,110,PixelFormat.Format32bppPArgb);using(var g=Graphics.FromImage(bmp)){
+        using var bmp=new Bitmap(ClientSize.Width,ClientSize.Height,PixelFormat.Format32bppPArgb);using(var g=Graphics.FromImage(bmp)){
             if(Resident.EntryFrame is Rectangle frame&&now<Resident.EntryUntil)g.SetClip(new RectangleF(frame.X-Resident.X,frame.Y-Resident.Y,frame.Width,frame.Height),System.Drawing.Drawing2D.CombineMode.Exclude);
             if(EffectTool.HasValue)Art.Effect(g,EffectTool.Value,now-EffectBorn);
-            else {float size=Rules.Size(Resident.Kind);Art.Bug(g,new((110-size)/2,110-size,size,size),Resident.Kind,now,Resident.FlyingUntil>now,Resident.Direction);
+            else {float size=Rules.Size(Resident.Kind);Art.Bug(g,new((ClientSize.Width-size)/2,ClientSize.Height-size,size,size),Resident.Kind,now,Resident.FlyingUntil>now,Resident.Direction);
             if(Resident.TauntUntil>now){Art.Round(g,new(0,1,110,24),Art.Cream,9);Art.Text(g,Resident.FlyingUntil>now?"打不到～我会飞！":"你以为没有了？",7,4,11,Art.Ink,true,103);}
         }
         }
         var screenDC=GetDC(IntPtr.Zero);var mem=CreateCompatibleDC(screenDC);var bitmap=bmp.GetHbitmap(Color.FromArgb(0));var old=SelectObject(mem,bitmap);
-        try{var pos=new NativePoint((int)Resident.X,(int)Resident.Y);var size=new NativeSize(110,110);var source=new NativePoint(0,0);var blend=new Blend{Alpha=255,Format=1};LastRenderOK=UpdateLayeredWindow(Handle,screenDC,ref pos,ref size,mem,ref source,0,ref blend,2);}
+        try{var pos=new NativePoint((int)Resident.X,(int)Resident.Y);var size=new NativeSize(ClientSize.Width,ClientSize.Height);var source=new NativePoint(0,0);var blend=new Blend{Alpha=255,Format=1};LastRenderOK=UpdateLayeredWindow(Handle,screenDC,ref pos,ref size,mem,ref source,0,ref blend,2);}
         finally{SelectObject(mem,old);DeleteObject(bitmap);DeleteDC(mem);ReleaseDC(IntPtr.Zero,screenDC);}
     }
     [StructLayout(LayoutKind.Sequential)]struct NativePoint{public int X,Y;public NativePoint(int x,int y){X=x;Y=y;}}

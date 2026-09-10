@@ -30,7 +30,21 @@ static class Art {
         var save=g.Save();g.TranslateTransform(box.X,box.Y);g.ScaleTransform(box.Width/140,box.Height/140);g.SmoothingMode=SmoothingMode.AntiAlias;
         if(!cat&&facing>0){g.TranslateTransform(140,0);g.ScaleTransform(-1,1);}
         if(cat){Round(g,new(78,28,70,88),Color.FromArgb(224,173,120),25);Oval(g,Color.FromArgb(235,193,141),18,37,95,82,Ink,3);for(int n=0;n<4;n++)Oval(g,Color.FromArgb(240,203,159),18+n*21,36,28,36,Ink,2);Oval(g,Color.FromArgb(217,147,150),43,78,46,28);for(int n=0;n<3;n++)Oval(g,Color.FromArgb(217,147,150),31+n*22,57,14,17);}
-        else{float wig=(float)Math.Sin(phase*12)*4;using var tail=new GraphicsPath();tail.AddBezier(89,88,122,120,139,105,138,70+wig);using var tp=new Pen(Color.FromArgb(203,155,156),4);g.DrawPath(tp,tail);foreach(float x in new[]{45f,86f})Line(g,Ink,4,new(x,99),new(x+wig,113));Oval(g,Color.FromArgb(169,170,168),32,64,75,43,Ink,3);Oval(g,Color.FromArgb(184,186,181),10,70,53,34,Ink,3);Oval(g,Color.FromArgb(184,186,181),31,49,30,32,Ink);Oval(g,Color.FromArgb(223,174,176),38,55,16,20);Oval(g,Ink,20,80,7,8);Oval(g,Color.FromArgb(199,129,140),6,91,9,7);Line(g,Ink,1,new(17,94),new(0,90));Line(g,Ink,1,new(17,97),new(0,103));}
+        else{
+            float wig=(float)Math.Sin(phase*12)*3;
+            using var tail=new GraphicsPath();tail.AddBezier(99,100,132,126,137,103,134,70+wig);using var outline=new Pen(Ink,7);using var pink=new Pen(Color.FromArgb(220,163,160),4);g.DrawPath(outline,tail);g.DrawPath(pink,tail);
+            Oval(g,Color.FromArgb(40,118,88,69),18,112,94,12);
+            foreach(float x in new[]{36f,87f})Oval(g,Color.FromArgb(220,163,160),x+wig,108,19,11,Ink,3);
+            var fur=Color.FromArgb(169,151,140);var blush=Color.FromArgb(220,163,160);
+            Oval(g,fur,51,29,33,38,Ink,3.5f);Oval(g,blush,58,36,19,23);
+            Oval(g,fur,23,51,91,65,Ink,4);Oval(g,Color.FromArgb(198,183,166),25,75,69,38);
+            Oval(g,Color.FromArgb(183,166,152),18,25,40,44,Ink,4);Oval(g,Color.FromArgb(230,180,174),26,33,24,28);
+            Oval(g,Color.FromArgb(211,195,180),87,62,13,7);Oval(g,Color.FromArgb(211,195,180),100,72,5,5);
+            Oval(g,Color.White,9,67,33,37,Ink,3.5f);Oval(g,Color.White,37,64,43,42,Ink,3.5f);
+            Oval(g,Ink,16,80,8,12);Oval(g,Ink,47,79,9,13);
+            Oval(g,Color.FromArgb(214,143,150),6,98,14,10,Ink,2.5f);
+            Line(g,Ink,2,new(24,108),new(30,111),new(37,108));Line(g,Ink,1.5f,new(16,103),new(1,97));Line(g,Ink,1.5f,new(17,108),new(2,113));
+        }
         g.Restore(save);
     }
     public static void Effect(Graphics g,Tool tool,double elapsed){

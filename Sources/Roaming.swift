@@ -1,7 +1,7 @@
 import Foundation
 
 // Visits are session-only: old save files keep all residents and progression unchanged.
-// Positions refer to the lower-left corner of a transparent 146 × 140 pet panel.
+// Positions refer to the lower-left corner of the kind-specific transparent pet panel.
 struct Visit {
     var hidden = true
     var exiting = false
@@ -9,22 +9,22 @@ struct Visit {
     var target = CGPoint.zero
     var screen = CGRect.zero
 
-    static func edgePoint(_ edge: Int, in screen: CGRect, fraction: Double) -> CGPoint {
+    static func edgePoint(_ edge: Int, in screen: CGRect, fraction: Double, kind:BugKind = .adult) -> CGPoint {
         let x=screen.minX+screen.width*fraction-73
         let y=screen.minY+screen.height*fraction-35
         switch edge {
-        case 0: return CGPoint(x:screen.minX-146,y:y)
+        case 0: return CGPoint(x:screen.minX-petCanvas(kind).width,y:y)
         case 1: return CGPoint(x:screen.maxX,y:y)
-        case 2: return CGPoint(x:x,y:screen.minY-140)
+        case 2: return CGPoint(x:x,y:screen.minY-petCanvas(kind).height)
         default: return CGPoint(x:x,y:screen.maxY)
         }
     }
-    static func nearestExit(from point:CGPoint,in screen:CGRect) -> CGPoint {
+    static func nearestExit(from point:CGPoint,in screen:CGRect, kind:BugKind = .adult) -> CGPoint {
         (0..<4).map { edge -> CGPoint in
             switch edge {
-            case 0:return CGPoint(x:screen.minX-146,y:point.y)
+            case 0:return CGPoint(x:screen.minX-petCanvas(kind).width,y:point.y)
             case 1:return CGPoint(x:screen.maxX,y:point.y)
-            case 2:return CGPoint(x:point.x,y:screen.minY-140)
+            case 2:return CGPoint(x:point.x,y:screen.minY-petCanvas(kind).height)
             default:return CGPoint(x:point.x,y:screen.maxY)
             }
         }.min {hypot($0.x-point.x,$0.y-point.y)<hypot($1.x-point.x,$1.y-point.y)}!
@@ -33,7 +33,7 @@ struct Visit {
         guard !hidden else{return}
         if !exiting && now>=deadline {
             exiting=true
-            target=Self.nearestExit(from:CGPoint(x:r.x,y:r.y),in:screen)
+            target=Self.nearestExit(from:CGPoint(x:r.x,y:r.y),in:screen,kind:r.kind)
         }
         let dx=target.x-r.x,dy=target.y-r.y,distance=hypot(dx,dy)
         let step=speed*dt
@@ -45,7 +45,7 @@ struct Visit {
     }
 }
 func desktopSize(_ kind:BugKind) -> CGFloat {
-    switch kind {case .mouse:return 104;case .catPaw:return 140;case .baby:return 45;case .egg:return 52;default:return 68}
+    switch kind {case .mouse:return 170;case .catPaw:return 140;case .baby:return 45;case .egg:return 52;default:return 68}
 }
 func runRoamingTests() {
     let f=CGRect(x:-1440,y:40,width:1440,height:860)
@@ -65,3 +65,5 @@ func runRoamingTests() {
     precondition(desktopSize(.adult)==68 && desktopSize(.baby)==45)
     print("PASS: four offscreen entrances, negative display coordinates, walking, exit, hidden stability, smaller sizes")
 }
+
+func petCanvas(_ kind:BugKind) -> CGSize { kind == .mouse ? CGSize(width:182,height:182) : CGSize(width:146,height:140) }

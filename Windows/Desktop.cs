@@ -11,6 +11,7 @@ sealed class PetWindow:Form {
     protected override void OnMouseDown(MouseEventArgs e){if(e.Button==MouseButtons.Left)use(Resident.Id);}
     public void Render(double now){
         using var bmp=new Bitmap(110,110,PixelFormat.Format32bppPArgb);using(var g=Graphics.FromImage(bmp)){
+            if(Resident.EntryFrame is Rectangle frame&&now<Resident.EntryUntil)g.SetClip(new RectangleF(frame.X-Resident.X,frame.Y-Resident.Y,frame.Width,frame.Height),System.Drawing.Drawing2D.CombineMode.Exclude);
             float size=Rules.Size(Resident.Kind);Art.Bug(g,new((110-size)/2,110-size,size,size),Resident.Kind,now,Resident.FlyingUntil>now,Resident.Direction);
             if(Resident.TauntUntil>now){Art.Round(g,new(0,1,110,24),Art.Cream,9);Art.Text(g,Resident.FlyingUntil>now?"打不到～我会飞！":"你以为没有了？",7,4,11,Art.Ink,true,103);}
         }
@@ -37,9 +38,11 @@ sealed class Dashboard:Form {
         var area=Screen.PrimaryScreen!.WorkingArea;float s=Math.Min(1,Math.Min((area.Width-60)/980f,(area.Height-70)/748f));ClientSize=new((int)(980*s),(int)(748*s));
         Add("＋ 撒点面包屑",new(55,281,162,43),()=>host.Action(()=>host.Game.Feed(Paradise.Now)),true);
         Add("放它们去桌面 ↗",new(229,281,172,43),()=>{host.Release();Hide();});
-        Add("▰  工作资料",new(62,408,164,60),()=>host.Action(()=>host.Game.Folder(Paradise.Now,PointToScreen(new(100,430))))).BackColor=Color.FromArgb(237,206,145);
-        Add("▰  绝对干净",new(244,408,164,60),()=>host.Action(()=>host.Game.Folder(Paradise.Now,PointToScreen(new(300,430))))).BackColor=Color.FromArgb(237,206,145);
+        Add("▰  工作资料",new(62,408,164,60),()=>host.Action(()=>host.Game.Folder(Paradise.Now,PointToScreen(new(100,430)),"preview:工作资料",Bounds))).BackColor=Color.FromArgb(237,206,145);
+        Add("▰  绝对干净",new(244,408,164,60),()=>host.Action(()=>host.Game.Folder(Paradise.Now,PointToScreen(new(300,430)),"preview:绝对干净",Bounds))).BackColor=Color.FromArgb(237,206,145);
         explorer=Add("连接资源管理器",new(701,442,222,33),()=>host.Action(()=>{host.Game.State.Explorer=!host.Game.State.Explorer;host.Game.Message=host.Game.State.Explorer?"已连接；打开文件夹试试":"文件夹联动已关闭";}));
+        Add("生长速度 ↗",new(720,507,105,28),()=>host.ShowGrowth());
+        Add("杀毒扫描",new(833,507,105,28),()=>host.Action(()=>host.Game.Scan(Paradise.Now)));
         foreach(Tool t in Enum.GetValues<Tool>()){var tool=t;tools[t]=Add(Rules.Names[(int)t],new(40+(int)t*183,537,172,62),()=>host.Action(()=>host.Game.Select(tool)));}
         pause=Add("暂停桌宠",new(613,672,106,35),()=>host.Action(()=>host.Game.TogglePause(Paradise.Now)));
         quiet=Add("专注模式",new(727,672,106,35),()=>host.Action(()=>host.Game.State.Quiet=!host.Game.State.Quiet));
@@ -61,7 +64,7 @@ sealed class Dashboard:Form {
         Art.Text(g,state.Poisoned?"已投药 · 成虫躺平，卵仍然会孵化":"试玩文件夹 · 点击即有旮杂跑出来",64,478,11,state.Poisoned?Art.Orange:Color.Gray);
         Art.Round(g,new(446,372,494,117),Color.FromArgb(239,238,228),17);int[] counts=[state.Residents.Count(r=>r.Live),state.Residents.Count(r=>r.Kind==Kind.Egg),state.Residents.Count(r=>r.Kind is Kind.Stain or Kind.Corpse)];string[] names=["住客","卵窝","待清洁"];for(int i=0;i<3;i++){Art.Text(g,counts[i].ToString(),468+i*80,388,25,null,true);Art.Text(g,names[i],468+i*80,422,10,Color.Gray);}
         Art.Text(g,"藏进资源管理器",701,388,15,null,true);Art.Text(g,"打开文件夹时，从窗口附近溜出来。",701,416,10,Color.Gray, false,225);
-        Art.Text(g,"02  /  旮杂应对工具箱",40,510,15,null,true);Art.Text(g,"喂食 +3  ·  捕捉 +2  ·  清洁 +2",716,513,11,Color.Gray);
+        Art.Text(g,"02  /  旮杂应对工具箱",40,510,15,null,true);Art.Text(g,$"生长 {state.Habitat.Rate}×",600,514,11,Art.Moss);
         for(int i=0;i<5;i++)Art.Text(g,Rules.Details[i],45+i*183,607,10,Color.Gray,false,171);
         Art.Line(g,Color.FromArgb(221,222,207),1,new(40,641),new(940,641));Art.Text(g,$"LV.{Math.Min(5,state.Xp/10+1)}  共生计划",40,660,12,Art.Moss,true);Art.Text(g,$"{state.Xp} 生长点",199,662,11,Art.Moss);Art.Round(g,new(40,686,234,5),Color.FromArgb(223,225,209),2);if(state.Xp>0)Art.Round(g,new(40,686,234*Math.Min(1,state.Xp/28f),5),Art.Moss,2);
         Art.Text(g,state.Xp>=28?"全工具已解锁 · 旮杂永远有下一招":"喂食、捕捉或清洁，解锁更多工具",40,700,10,Color.Gray);Art.Text(g,host.Game.Message,300,665,12,Art.Orange,false,302);Art.Text(g,Rules.Details[(int)state.Tool],300,689,10,Color.Gray,false,302);
@@ -91,19 +94,20 @@ sealed class Paradise:ApplicationContext {
     void ShowDashboard(){dashboard.Show();dashboard.WindowState=FormWindowState.Normal;dashboard.Activate();}
     public void Action(Action action){action();Sync();dashboard.RefreshState();RebuildMenu();Save();}
     public void Release(){Action(()=>{if(Game.Paused)Game.TogglePause(Now);var r=Game.State.Residents.FirstOrDefault(r=>r.Live);if(r!=null)Game.BeginVisit(r,Now);else Game.Spawn(Kind.Adult,Now);});}
+    public void ShowGrowth(){var menu=new ContextMenuStrip();foreach(var rate in new[]{.25,1.0,3.0}){var r=rate;menu.Items.Add($"生长速度 {r}×",null,(s,e)=>Action(()=>Game.State.Habitat.Rate=r));}menu.Closed+=(s,e)=>menu.Dispose();menu.Show(Cursor.Position);}
     void RebuildMenu(){var menu=new ContextMenuStrip();menu.Items.Add("当前工具："+Rules.Names[(int)Game.State.Tool]).Enabled=false;menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("打开旮旯乐园",null,(s,e)=>ShowDashboard());foreach(Tool t in Enum.GetValues<Tool>()){var tool=t;var item=new ToolStripMenuItem(Game.State.Xp>=Rules.Unlock[(int)t]?Rules.Names[(int)t]:$"{Rules.Names[(int)t]}（{Rules.Unlock[(int)t]} 点解锁）"){Checked=Game.State.Tool==t};item.Click+=(s,e)=>Action(()=>Game.Select(tool));menu.Items.Add(item);}
-        menu.Items.Add(new ToolStripSeparator());menu.Items.Add("撒点面包屑 +3",null,(s,e)=>Action(()=>Game.Feed(Now)));menu.Items.Add(Game.Paused?"继续桌宠":"暂停并隐藏桌宠",null,(s,e)=>Action(()=>Game.TogglePause(Now)));menu.Items.Add(Game.State.Quiet?"关闭专注模式":"开启专注模式",null,(s,e)=>Action(()=>Game.State.Quiet=!Game.State.Quiet));if(Game.State.Poisoned)menu.Items.Add("收起蟑螂药",null,(s,e)=>Action(()=>{Game.State.Poisoned=false;Game.State.Tool=Tool.Pinch;}));menu.Items.Add("退出旮旯乐园",null,(s,e)=>Quit());
+        menu.Items.Add(new ToolStripSeparator());menu.Items.Add("撒点面包屑 +3",null,(s,e)=>Action(()=>Game.Feed(Now)));menu.Items.Add(Game.Paused?"继续桌宠":"暂停并隐藏桌宠",null,(s,e)=>Action(()=>Game.TogglePause(Now)));menu.Items.Add(Game.State.Quiet?"关闭专注模式":"开启专注模式",null,(s,e)=>Action(()=>Game.State.Quiet=!Game.State.Quiet));if(Game.State.Poisoned)menu.Items.Add("收起蟑螂药",null,(s,e)=>Action(()=>{Game.State.Poisoned=false;Game.State.Tool=Tool.Pinch;}));menu.Items.Add(new ToolStripSeparator());var growth=new ToolStripMenuItem("生长速度");foreach(var rate in new[]{.25,1.0,3.0}){var r=rate;var item=new ToolStripMenuItem($"{r}×"){Checked=Game.State.Habitat.Rate==r};item.Click+=(s,e)=>Action(()=>Game.State.Habitat.Rate=r);growth.DropDownItems.Add(item);}menu.Items.Add(growth);menu.Items.Add("杀毒扫描 · 清理游戏住客",null,(s,e)=>Action(()=>Game.Scan(Now)));menu.Items.Add("退出旮旯乐园",null,(s,e)=>Quit());
         var old=tray.ContextMenuStrip;tray.ContextMenuStrip=menu;tray.Text="旮旯乐园 · "+Rules.Names[(int)Game.State.Tool];if(old!=null)dashboard.BeginInvoke(new Action(old.Dispose));
     }
-    void Tick(){double now=Now;Game.Tick(now,Math.Min(.1,now-lastTick));lastTick=now;Sync();if(now-lastSecond>1){lastSecond=now;if(!Game.Paused&&!Game.State.Quiet&&Game.State.Explorer&&explorer.TryFolder(out var p)){Game.Folder(now,p);RebuildMenu();}dashboard.RefreshState();}if(now-lastSave>10){lastSave=now;Save();}}
+    void Tick(){double now=Now;Game.Tick(now,Math.Min(.1,now-lastTick));lastTick=now;Sync();if(now-lastSecond>1){lastSecond=now;if(!Game.Paused&&!Game.State.Quiet&&Game.State.Explorer&&explorer.TryFolder(out var p,out var identity,out var frame)){Game.Folder(now,p,identity,frame);RebuildMenu();}dashboard.RefreshState();}if(now-lastSave>10){lastSave=now;Save();}}
     void Sync(){foreach(var id in pets.Keys.Where(id=>Game.State.Residents.All(r=>r.Id!=id)).ToArray()){pets[id].Dispose();pets.Remove(id);}foreach(var r in Game.State.Residents){if(!pets.TryGetValue(r.Id,out var pet)){pet=new PetWindow(r,id=>Action(()=>Game.Use(id,Now)));pets[r.Id]=pet;}if(Game.Paused||(r.Live&&r.Hidden)){if(pet.Visible)pet.Hide();continue;}if(!pet.Visible)pet.Show();pet.Render(Now);}}
     void Save(){if(smoke)return;try{Directory.CreateDirectory(Path.GetDirectoryName(savePath)!);File.WriteAllText(savePath+".tmp",Game.Serialize());File.Move(savePath+".tmp",savePath,true);}catch(Exception){Game.Message="存档暂时写入失败，请检查磁盘空间";}}
     void SmokeTest(){
         string log=Path.Combine(Path.GetTempPath(),"GalaParadise-smoke.txt");
         try{
             Game.State=new SaveState();Action(()=>Game.Folder(Now));
-            if(pets.Count!=4)throw new Exception("Folder windows were not created");
+            if(pets.Count!=3)throw new Exception("Folder windows were not created");
             if(pets.Values.Any(p=>!p.LastRenderOK))throw new Exception("Transparent layered window rendering failed");
             dashboard.WindowState=FormWindowState.Minimized;
             Game.State.Xp=28;Action(()=>Game.Select(Tool.Vacuum));

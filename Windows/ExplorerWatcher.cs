@@ -8,8 +8,8 @@ sealed class ExplorerWatcher:IDisposable {
     [DllImport("user32.dll")]static extern bool GetWindowRect(IntPtr hwnd,out NativeRect rect);
     [StructLayout(LayoutKind.Sequential)]struct NativeRect{public int Left,Top,Right,Bottom;}
     object? shell; string last="";
-    public bool TryFolder(out PointF point){
-        point=default;IntPtr hwnd=GetForegroundWindow();var cls=new StringBuilder(128);GetClassName(hwnd,cls,128);if(cls.ToString() is not ("CabinetWClass" or "ExploreWClass"))return false;
+    public bool TryFolder(out PointF point,out string identity,out Rectangle frame){
+        point=default;identity="";frame=default;IntPtr hwnd=GetForegroundWindow();var cls=new StringBuilder(128);GetClassName(hwnd,cls,128);if(cls.ToString() is not ("CabinetWClass" or "ExploreWClass")){last="";return false;}
         object? windows=null;
         try{
             shell??=Activator.CreateInstance(Type.GetTypeFromProgID("Shell.Application")!);
@@ -20,7 +20,7 @@ sealed class ExplorerWatcher:IDisposable {
                     string url=(string)((dynamic)win).LocationURL;
                     if(string.IsNullOrEmpty(url))continue;
                     var key=hwnd.ToString()+"|"+url;if(key==last)return false;last=key;
-                    if(GetWindowRect(hwnd,out var r))point=new(r.Left+60,r.Top+120);return true;
+                    identity=url;if(GetWindowRect(hwnd,out var r)){frame=Rectangle.FromLTRB(r.Left,r.Top,r.Right,r.Bottom);point=Habitat.Border(frame,0,.5);}return true;
                 }finally{Release(win);}
             }
         }catch(COMException){Release(shell);shell=null;}catch{ /* Shell may be restarting or the current page may not be a folder. */ }

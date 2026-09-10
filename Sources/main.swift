@@ -2,6 +2,7 @@ import AppKit
 if CommandLine.arguments.contains("--self-test") {
     runModelTests()
     runRoamingTests()
+    runHabitatTests()
 } else {
     let app=NSApplication.shared
     let delegate=Paradise()

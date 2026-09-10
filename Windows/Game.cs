@@ -16,6 +16,8 @@ public class Resident {
     public float X {get;set;}
     public float Y {get;set;}
     public double Born {get;set;}
+    [JsonIgnore] public Rectangle? EntryFrame{get;set;}
+    [JsonIgnore] public double EntryUntil{get;set;}
     [JsonIgnore] public bool Live=>Kind is Kind.Adult or Kind.Baby;
     [JsonIgnore] public bool Hidden {get;set;}=true;
     [JsonIgnore] public bool Exiting {get;set;}
@@ -28,6 +30,7 @@ public class Resident {
     [JsonIgnore] public float Direction {get;set;}=1;
 }
 public class SaveState {
+    public Habitat Habitat{get;set;}=new();
     public int Version {get;set;}=1;
     public int Xp {get;set;}
     public int Captures {get;set;}
@@ -52,12 +55,13 @@ public class Game {
     double Range(double a,double b)=>a+rng.NextDouble()*(b-a);
     public void Select(Tool t){if(State.Xp<Rules.Unlock[(int)t]){Message=$"还差 {Rules.Unlock[(int)t]-State.Xp} 点，喂食或捕捉来解锁";return;}State.Tool=t;if(t==Tool.Poison)State.Poisoned=true;Message=$"已拿起{Rules.Names[(int)t]}，点击桌面上的目标";}
     public void Feed(double now){if(Paused)return;if(now-lastFeed<2){Message="嚼嚼嚼……稍等两秒再喂";return;}lastFeed=now;State.Xp+=3;State.Fed++;Spawn(Kind.Adult,now);if(State.Fed%2==0)Spawn(Kind.Egg,now);Message="面包屑 +3 生长点。旮杂：还有吗？";}
-    public void Folder(double now,PointF? origin=null){if(Paused||State.Quiet||now-lastFolder<1.2)return;lastFolder=now;State.Xp++;for(int i=0;i<3;i++)Spawn(State.Poisoned?Kind.Corpse:Kind.Adult,now,origin??new PointF(Screens[0].Left+160,Screens[0].Top+160));if(State.Residents.Count(r=>r.Kind==Kind.Egg)<7)Spawn(Kind.Egg,now);Message=State.Poisoned?"里面都躺平了……但卵还没事。":"开门！三只旮杂溜出来了";}
+    public void Folder(double now,PointF? origin=null,string identity="preview",Rectangle? frame=null){if(Paused||State.Quiet||now-lastFolder<1.2)return;lastFolder=now;State.Xp++;var result=State.Habitat.Opened(identity,now);int firstSide=rng.Next(4);for(int i=0;i<result.Count;i++){int side=(firstSide+i)%4;var r=Spawn(State.Poisoned?Kind.Corpse:Kind.Adult,now,frame.HasValue?Habitat.Border(frame.Value,side,Range(.2,.8)):origin??new PointF(Screens[0].Left+160,Screens[0].Top+160));if(r!=null&&r.Live&&frame.HasValue){r.EntryFrame=frame;r.EntryUntil=now+2.5;r.TargetX=r.X+(side==0?-140:side==1?140:0);r.TargetY=r.Y+(side==2?-140:side==3?140:0);}}if(result.Eggs&&State.Residents.Count(r=>r.Kind==Kind.Egg)<7)Spawn(Kind.Egg,now);Message=State.Poisoned?"里面都躺平了……但卵还没事。":"开门！三只旮杂溜出来了";}
+    public void Scan(double now){int count=State.Residents.RemoveAll(r=>r.Kind!=Kind.Stain);State.Habitat.Clean(now);Message=$"扫描清走 {count} 个住客／卵，防护 5 分钟；污渍手动擦";}
     public Resident? Spawn(Kind k,double now,PointF? origin=null){
         if(State.Residents.Count>=38)return null;var f=Screens[rng.Next(Screens.Length)];
         var r=new Resident{Kind=k,Born=now,X=f.Left+(float)Range(10,Math.Max(11,f.Width-110)),Y=f.Top+(float)Range(20,Math.Max(21,f.Height-160)),Screen=f};
         if(k==Kind.Egg){r.X=rng.Next(2)==0?f.Left+5:f.Right-95;r.Y=f.Bottom-(float)Range(140,210);}
-        if(origin.HasValue){r.X=origin.Value.X+(float)Range(0,120);r.Y=origin.Value.Y+(float)Range(-15,30);}
+        if(origin.HasValue){r.X=origin.Value.X;r.Y=origin.Value.Y;}
         r.Hidden=r.Live;State.Residents.Add(r);
         if(r.Live&&(origin.HasValue||VisibleCount==0))BeginVisit(r,now,origin);
         return r;
@@ -72,6 +76,7 @@ public class Game {
     }
     public void Tick(double now,double dt){
         if(Paused)return;
+        if(!State.Quiet)foreach(var r in State.Residents.Where(r=>r.Kind is Kind.Baby or Kind.Egg))r.Born-=dt*(State.Habitat.Rate-1);
         foreach(var r in State.Residents.Where(r=>r.Live)){
             if(r.Kind==Kind.Baby&&now-r.Born>120&&!State.Quiet)r.Kind=Kind.Adult;
             if(r.Hidden)continue;
@@ -81,11 +86,11 @@ public class Game {
             if(d<=Math.Max(1,step)){r.X=r.TargetX;r.Y=r.TargetY;if(r.Exiting){r.Hidden=true;NextAppearance=now+Range(22,45);}}
             else{r.X+=dx/d*step;r.Y+=dy/d*step;}
         }
-        if(State.Quiet)return;
+        if(State.Quiet||now<State.Habitat.CleanUntil)return;
         if(VisibleCount==0&&now>=NextAppearance){var hidden=State.Residents.Where(r=>r.Live).ToArray();if(hidden.Length>0)BeginVisit(hidden[rng.Next(hidden.Length)],now);NextAppearance=now+Range(22,45);}
         var egg=State.Residents.FirstOrDefault(r=>r.Kind==Kind.Egg&&now-r.Born>55);
         if(egg!=null&&State.Residents.Count<38){State.Residents.Remove(egg);var baby=Spawn(Kind.Baby,now);if(baby!=null)baby.TauntUntil=now+5;Spawn(Kind.Baby,now);Message="角落的卵孵化了。没想到吧？";}
-        if(State.Residents.Any(r=>r.Live)){emptySince=0;if(now-lastEgg>75){lastEgg=now;if(State.Residents.Count(r=>r.Kind==Kind.Egg)<5)Spawn(Kind.Egg,now);}}
+        if(State.Residents.Any(r=>r.Live)){emptySince=0;if(now-lastEgg>75/State.Habitat.Rate){lastEgg=now;if(State.Residents.Count(r=>r.Kind==Kind.Egg)<5)Spawn(Kind.Egg,now);}}
         else{if(emptySince==0)emptySince=now;if(now-emptySince>24){var baby=Spawn(Kind.Baby,now);if(baby!=null)baby.TauntUntil=now+5;emptySince=0;Message="漏网之鱼：你以为电脑干净了？";}}
     }
     public void TogglePause(double now){Paused=!Paused;if(Paused)pauseStart=now;else{var d=now-pauseStart;foreach(var r in State.Residents){r.Born+=d;r.ExitAt+=d;r.FlyingUntil+=d;r.TauntUntil+=d;}NextAppearance+=d;lastEgg+=d;if(emptySince>0)emptySince+=d;}Message=Paused?"全体暂停，可以安心办公":"住客们回来啦";}
@@ -103,5 +108,5 @@ public class Game {
         else Message=r.Kind==Kind.Stain?"这是顽固污渍，要用清洁剂":"用吸尘器收走吧";
     }
     public string Serialize()=>JsonSerializer.Serialize(State,new JsonSerializerOptions{WriteIndented=true});
-    public void Restore(string json){State=JsonSerializer.Deserialize<SaveState>(json)??throw new InvalidDataException("空存档");State.Residents=State.Residents.Take(38).Where(r=>float.IsFinite(r.X)&&float.IsFinite(r.Y)).ToList();if(!Enum.IsDefined(State.Tool)||State.Xp<Rules.Unlock[(int)State.Tool])State.Tool=Tool.Pinch;foreach(var r in State.Residents)r.Hidden=r.Live;}
+    public void Restore(string json){State=JsonSerializer.Deserialize<SaveState>(json)??throw new InvalidDataException("空存档");State.Habitat.Rate=new[]{.25,1.0,3.0}.Contains(State.Habitat.Rate)?State.Habitat.Rate:1;State.Residents=State.Residents.Take(38).Where(r=>float.IsFinite(r.X)&&float.IsFinite(r.Y)).ToList();if(!Enum.IsDefined(State.Tool)||State.Xp<Rules.Unlock[(int)State.Tool])State.Tool=Tool.Pinch;foreach(var r in State.Residents)r.Hidden=r.Live;}
 }

@@ -29,7 +29,15 @@ static class Art {
     public static void Friend(Graphics g,RectangleF box,bool cat,double phase,float facing=1){
         var save=g.Save();g.TranslateTransform(box.X,box.Y);g.ScaleTransform(box.Width/140,box.Height/140);g.SmoothingMode=SmoothingMode.AntiAlias;
         if(!cat&&facing>0){g.TranslateTransform(140,0);g.ScaleTransform(-1,1);}
-        if(cat){Round(g,new(78,28,70,88),Color.FromArgb(224,173,120),25);Oval(g,Color.FromArgb(235,193,141),18,37,95,82,Ink,3);for(int n=0;n<4;n++)Oval(g,Color.FromArgb(240,203,159),18+n*21,36,28,36,Ink,2);Oval(g,Color.FromArgb(217,147,150),43,78,46,28);for(int n=0;n<3;n++)Oval(g,Color.FromArgb(217,147,150),31+n*22,57,14,17);}
+        if(cat){
+            float contact=(float)Rules.PawContact(phase);g.TranslateTransform((1-contact)*130,-(1-contact)*9);
+            Oval(g,Color.FromArgb((int)(20+contact*41),102,83,59),16,88,119,26);
+            using var paw=new GraphicsPath();paw.AddLine(145,43,78,43);paw.AddBezier(78,43,65,29,47,29,41,39);paw.AddBezier(41,39,25,37,17,46,23,57);paw.AddBezier(23,57,8,58,7,73,19,78);paw.AddBezier(19,78,10,90,24,103,37,98);paw.AddBezier(37,98,46,112,63,111,78,102);paw.AddLine(78,102,145,102);paw.CloseFigure();
+            using var furBrush=new SolidBrush(Color.FromArgb(235,193,141));using var pawPen=new Pen(Ink,3);g.FillPath(furBrush,paw);g.DrawPath(pawPen,paw);
+            Oval(g,Color.FromArgb(245,215,174),43,44,37,17);
+            var crease=Color.FromArgb(156,114,76);Line(g,crease,2,new(23,57),new(37,61));Line(g,crease,2,new(19,78),new(35,78));Line(g,crease,2,new(37,98),new(43,89));
+            foreach(float x in new[]{99f,116f})Line(g,Color.FromArgb(198,149,101),4,new(x,45),new(x-7,58));
+        }
         else{
             float wig=(float)Math.Sin(phase*12)*3;
             using var tail=new GraphicsPath();tail.AddBezier(99,100,132,126,137,103,134,70+wig);using var outline=new Pen(Ink,7);using var pink=new Pen(Color.FromArgb(220,163,160),4);g.DrawPath(outline,tail);g.DrawPath(pink,tail);
@@ -46,7 +54,7 @@ static class Art {
             Oval(g,Color.White,9,67,33,37,Ink,3.5f);Oval(g,Color.White,37,64,43,42,Ink,3.5f);
             Oval(g,Ink,16,80,8,12);Oval(g,Ink,47,79,9,13);
             Oval(g,Color.FromArgb(214,143,150),6,98,14,10,Ink,2.5f);
-            Line(g,Ink,2,new(24,108),new(30,111),new(37,108));Line(g,Ink,1.5f,new(16,103),new(1,97));Line(g,Ink,1.5f,new(17,108),new(2,113));
+            Line(g,Ink,1.5f,new(16,109),new(20,112));for(int n=0;n<3;n++)Line(g,Color.FromArgb(107,98,86),.9f,new(25,109+n*2),new(44,108+n*7));
         }
         g.Restore(save);
     }

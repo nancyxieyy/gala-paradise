@@ -62,7 +62,7 @@ final class PetView: NSView {
             let clip=NSBezierPath(rect:bounds);clip.windingRule = .evenOdd
             clip.appendRect(NSRect(x:entry.frame.minX-r.x,y:bounds.height-entry.frame.maxY+r.y,width:entry.frame.width,height:entry.frame.height));clip.addClip()
         }
-        drawBug(in:NSRect(x:(bounds.width-size)/2,y:bounds.height-size,width:size,height:size),kind:r.kind,phase:now,flying:r.flyingUntil>now,facing:r.vx>=0 ? 1 : -1)
+        drawBug(in:NSRect(x:(bounds.width-size)/2,y:bounds.height-size,width:size,height:size),kind:r.kind,phase:r.kind == .catPaw ? now-r.born : now,flying:r.flyingUntil>now,facing:r.vx>=0 ? 1 : -1)
         if r.tauntUntil>now {
             paintRect(NSRect(x:3,y:7,width:140,height:27),cream,radius:12,stroke:ink)
             label(r.flyingUntil>now ? "打不到～我会飞！" : "你以为没有了？",13,11,size:11,weight:.semibold,width:128)
@@ -463,7 +463,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         beginVisit(r.id,now:now)
         let f=screen.frame
         if kind == .mouse {state.residents[state.residents.count-1].x=f.minX-petCanvas(kind).width;state.residents[state.residents.count-1].y=f.minY+120;visits[r.id]?.target=CGPoint(x:f.maxX,y:f.minY+120);visits[r.id]?.deadline=now+14}
-        else {state.residents[state.residents.count-1].x=f.maxX-90;state.residents[state.residents.count-1].y=f.minY+170;visits[r.id]?.target=CGPoint(x:f.maxX-150,y:f.minY+170);visits[r.id]?.deadline=now+5}
+        else {state.residents[state.residents.count-1].x=f.maxX-220;state.residents[state.residents.count-1].y=f.minY+170;state.residents[state.residents.count-1].born=now;visits[r.id]?.screen=f}
         if state.progression?.seen.contains(kind.rawValue) == false {state.progression?.seen.append(kind.rawValue);tell(kind == .mouse ? "新朋友解锁：路过的小老鼠" : "新朋友解锁：一只探进来的猫爪")}
         syncPanels();save()
     }
@@ -545,7 +545,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         paintRect(NSRect(x:0,y:0,width:1000,height:260),cream)
         drawBug(in:NSRect(x:20,y:20,width:180,height:180),kind:.gold)
         drawFriend(in:NSRect(x:230,y:0,width:230,height:230),cat:false,phase:0)
-        drawFriend(in:NSRect(x:490,y:15,width:230,height:210),cat:true,phase:0)
+        drawFriend(in:NSRect(x:490,y:15,width:230,height:210),cat:true,phase:3)
         let shift=AffineTransform(translationByX:790,byY:40);(shift as NSAffineTransform).concat();drawSpray(in:NSRect(x:0,y:0,width:146,height:140));let undo=AffineTransform(translationByX:-790,byY:-40);(undo as NSAffineTransform).concat()
         for (i,text) in ["黄金旮杂 · +2 金壳","小老鼠 · 3 分钟","探进来的猫爪 · 10 分钟","手持喷雾 · 泡沫"].enumerated(){label(text,CGFloat(i)*250+30,227,size:14,weight:.semibold)}
         friends.unlockFocus()

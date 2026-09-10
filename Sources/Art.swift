@@ -112,11 +112,23 @@ func drawFriend(in box:NSRect,cat:Bool,phase:Double,facing:Double=1){
     let scale=AffineTransform(scaleByX:box.width/140,byY:box.height/140);(scale as NSAffineTransform).concat()
     if !cat && facing>0 {let flip=AffineTransform(translationByX:140,byY:0);(flip as NSAffineTransform).concat();let mirror=AffineTransform(scaleByX:-1,byY:1);(mirror as NSAffineTransform).concat()}
     if cat {
-        paintRect(NSRect(x:78,y:28,width:66,height:88),color(0xE0AD78),radius:25,stroke:ink,width:3)
-        oval(NSRect(x:18,y:37,width:95,height:82),color(0xEBC18D),stroke:ink,width:3)
-        for n in 0..<4 {oval(NSRect(x:18+CGFloat(n)*21,y:36,width:28,height:36),color(0xF0CB9F),stroke:ink,width:2)}
-        oval(NSRect(x:43,y:78,width:46,height:28),color(0xD99396))
-        for n in 0..<3 {oval(NSRect(x:31+CGFloat(n)*22,y:57,width:14,height:17),color(0xD99396))}
+        let contact=pawContact(phase)
+        let reach=AffineTransform(translationByX:(1-contact)*130,byY:-(1-contact)*9);(reach as NSAffineTransform).concat()
+        // Top of the paw resting on the desktop; the pads face the floor.
+        oval(NSRect(x:16,y:88,width:119,height:26),color(0x66533B,0.08+contact*0.16))
+        let paw=NSBezierPath();paw.move(to:NSPoint(x:145,y:43));paw.line(to:NSPoint(x:78,y:43))
+        paw.curve(to:NSPoint(x:41,y:39),controlPoint1:NSPoint(x:65,y:29),controlPoint2:NSPoint(x:47,y:29))
+        paw.curve(to:NSPoint(x:23,y:57),controlPoint1:NSPoint(x:25,y:37),controlPoint2:NSPoint(x:17,y:46))
+        paw.curve(to:NSPoint(x:19,y:78),controlPoint1:NSPoint(x:8,y:58),controlPoint2:NSPoint(x:7,y:73))
+        paw.curve(to:NSPoint(x:37,y:98),controlPoint1:NSPoint(x:10,y:90),controlPoint2:NSPoint(x:24,y:103))
+        paw.curve(to:NSPoint(x:78,y:102),controlPoint1:NSPoint(x:46,y:112),controlPoint2:NSPoint(x:63,y:111))
+        paw.line(to:NSPoint(x:145,y:102));paw.close()
+        color(0xEBC18D).setFill();paw.fill();ink.setStroke();paw.lineWidth=3;paw.stroke()
+        oval(NSRect(x:43,y:44,width:37,height:17),color(0xF5D7AE))
+        line([NSPoint(x:23,y:57),NSPoint(x:37,y:61)],color(0x9C724C),2)
+        line([NSPoint(x:19,y:78),NSPoint(x:35,y:78)],color(0x9C724C),2)
+        line([NSPoint(x:37,y:98),NSPoint(x:43,y:89)],color(0x9C724C),2)
+        for x in [99.0,116.0] {line([NSPoint(x:x,y:45),NSPoint(x:x-7,y:58)],color(0xC69565),4)}
     } else {
         let wig=sin(phase*12)*3
         let tail=NSBezierPath();tail.move(to:NSPoint(x:99,y:100));tail.curve(to:NSPoint(x:134,y:70+wig),controlPoint1:NSPoint(x:132,y:126),controlPoint2:NSPoint(x:137,y:103));ink.setStroke();tail.lineWidth=7;tail.stroke();color(0xDCA3A0).setStroke();tail.lineWidth=4;tail.stroke()
@@ -140,9 +152,11 @@ func drawFriend(in box:NSRect,cat:Bool,phase:Double,facing:Double=1){
         oval(NSRect(x:16,y:80,width:8,height:12),ink)
         oval(NSRect(x:47,y:79,width:9,height:13),ink)
         oval(NSRect(x:6,y:98,width:14,height:10),color(0xD68F96),stroke:ink,width:2.5)
-        line([NSPoint(x:24,y:108),NSPoint(x:30,y:111),NSPoint(x:37,y:108)],ink,2)
-        line([NSPoint(x:16,y:103),NSPoint(x:1,y:97)],ink,1.5)
-        line([NSPoint(x:17,y:108),NSPoint(x:2,y:113)],ink,1.5)
+        line([NSPoint(x:16,y:109),NSPoint(x:20,y:112)],ink,1.5)
+        // Fine whiskers fan from the cheek, clear of the pink nose.
+        for n in 0..<3 {
+            line([NSPoint(x:25,y:109+Double(n)*2),NSPoint(x:44,y:108+Double(n)*7)],color(0x6B6256),0.9)
+        }
     }
     NSGraphicsContext.restoreGraphicsState()
 }

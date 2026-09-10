@@ -9,8 +9,9 @@ public static class Rules {
     public static readonly int[] Cost=[0,2,4,6,5];
     public static readonly int[] Unlock=[0,5,12,20,28];
     public static readonly string[] Details=["噗叽！会留奶油污渍","啪！但它可能会飞","开文件夹时批量躺平","活的、死的、卵，都能吸","最后一步：把污渍擦掉"];
-    public static int Canvas(Kind k)=>k==Kind.Mouse?182:110;
-    public static float Size(Kind k)=>k==Kind.Mouse?170:k==Kind.CatPaw?110:k==Kind.Baby?45:k==Kind.Egg?52:68;
+    public static double PawContact(double elapsed){double t=Math.Clamp(elapsed<1.2?elapsed/1.2:elapsed>4.5?(6-elapsed)/1.5:1,0,1);return t*t*(3-2*t);}
+    public static int Canvas(Kind k)=>k==Kind.CatPaw?252:k==Kind.Mouse?182:110;
+    public static float Size(Kind k)=>k==Kind.Mouse?170:k==Kind.CatPaw?240:k==Kind.Baby?45:k==Kind.Egg?52:68;
 }
 public class Resident {
     public Guid Id {get;set;}=Guid.NewGuid();
@@ -88,6 +89,7 @@ public class Game {
         foreach(var r in State.Residents.Where(r=>r.Live)){
             if(r.Kind==Kind.Baby&&now-r.Born>120&&!State.Quiet)r.Kind=Kind.Adult;
             if(r.Hidden)continue;
+            if(r.Kind==Kind.CatPaw){if(now-r.Born>=6)r.Hidden=true;continue;}
             if(!r.Exiting&&now>=r.ExitAt){r.Exiting=true;var f=r.Screen;PointF[] exits=[new(f.Left-Rules.Canvas(r.Kind),r.Y),new(f.Right,r.Y),new(r.X,f.Top-Rules.Canvas(r.Kind)),new(r.X,f.Bottom)];var p=exits.MinBy(p=>MathF.Abs(p.X-r.X)+MathF.Abs(p.Y-r.Y));r.TargetX=p.X;r.TargetY=p.Y;}
             float dx=r.TargetX-r.X,dy=r.TargetY-r.Y,d=MathF.Sqrt(dx*dx+dy*dy);r.Direction=dx>=0?1:-1;
             float step=(float)(dt*(r.Kind==Kind.Mouse?145:r.Kind==Kind.CatPaw?18:r.FlyingUntil>now?190:58)*(State.Quiet ? 0.4 : 1));
@@ -110,7 +112,7 @@ public class Game {
     }
     void SpawnFriend(Kind kind,double now){var r=Spawn(kind,now);if(r==null)return;BeginVisit(r,now);var f=r.Screen;
         if(kind==Kind.Mouse){r.X=f.Left-Rules.Canvas(r.Kind);r.Y=f.Bottom-200;r.TargetX=f.Right;r.TargetY=r.Y;r.ExitAt=now+14;}
-        else{r.X=f.Right-40;r.Y=f.Top+200;r.TargetX=f.Right-100;r.TargetY=r.Y;r.ExitAt=now+5;}
+        else{r.X=f.Right-220;r.Y=f.Top+200;r.Born=now;}
         if(!State.Progression.Seen.Contains(kind.ToString())){State.Progression.Seen.Add(kind.ToString());Message=kind==Kind.Mouse?"新朋友解锁：路过的小老鼠":"新朋友解锁：一只探进来的猫爪";}
     }
     public void TogglePause(double now){Paused=!Paused;if(Paused)pauseStart=now;else{var d=now-pauseStart;foreach(var r in State.Residents){r.Born+=d;r.ExitAt+=d;r.FlyingUntil+=d;r.TauntUntil+=d;}NextAppearance+=d;nextGold+=d;nextMouse+=d;nextCat+=d;lastEgg+=d;if(emptySince>0)emptySince+=d;}Message=Paused?"全体暂停，可以安心办公":"住客们回来啦";}

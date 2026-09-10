@@ -14,7 +14,7 @@ sealed class PetWindow:Form {
         using var bmp=new Bitmap(ClientSize.Width,ClientSize.Height,PixelFormat.Format32bppPArgb);using(var g=Graphics.FromImage(bmp)){
             if(Resident.EntryFrame is Rectangle frame&&now<Resident.EntryUntil)g.SetClip(new RectangleF(frame.X-Resident.X,frame.Y-Resident.Y,frame.Width,frame.Height),System.Drawing.Drawing2D.CombineMode.Exclude);
             if(EffectTool.HasValue)Art.Effect(g,EffectTool.Value,now-EffectBorn);
-            else {float size=Rules.Size(Resident.Kind);Art.Bug(g,new((ClientSize.Width-size)/2,ClientSize.Height-size,size,size),Resident.Kind,now,Resident.FlyingUntil>now,Resident.Direction);
+            else {float size=Rules.Size(Resident.Kind);Art.Bug(g,new((ClientSize.Width-size)/2,ClientSize.Height-size,size,size),Resident.Kind,Resident.Kind==Kind.CatPaw?now-Resident.Born:now,Resident.FlyingUntil>now,Resident.Direction);
             if(Resident.TauntUntil>now){Art.Round(g,new(0,1,110,24),Art.Cream,9);Art.Text(g,Resident.FlyingUntil>now?"打不到～我会飞！":"你以为没有了？",7,4,11,Art.Ink,true,103);}
         }
         }

@@ -31,6 +31,7 @@ struct Visit {
     }
     mutating func advance(_ r:inout Resident, now:Double,dt:Double,speed:Double) {
         guard !hidden else{return}
+        if r.kind == .catPaw {if now-r.born>=6 {hidden=true};return}
         if !exiting && now>=deadline {
             exiting=true
             target=Self.nearestExit(from:CGPoint(x:r.x,y:r.y),in:screen,kind:r.kind)
@@ -45,7 +46,7 @@ struct Visit {
     }
 }
 func desktopSize(_ kind:BugKind) -> CGFloat {
-    switch kind {case .mouse:return 170;case .catPaw:return 140;case .baby:return 45;case .egg:return 52;default:return 68}
+    switch kind {case .mouse:return 170;case .catPaw:return 240;case .baby:return 45;case .egg:return 52;default:return 68}
 }
 func runRoamingTests() {
     let f=CGRect(x:-1440,y:40,width:1440,height:860)
@@ -63,7 +64,20 @@ func runRoamingTests() {
     v.advance(&r,now:500,dt:100,speed:50)
     precondition(r.x==x && r.y==y)
     precondition(desktopSize(.adult)==68 && desktopSize(.baby)==45)
+    precondition(pawContact(0)==0 && pawContact(3)==1 && pawContact(6)==0)
+    var cat=Resident(kind:.catPaw,x:-220,y:200,born:0)
+    var catVisit=Visit(hidden:false,exiting:false,deadline:5,target:.zero,screen:f)
+    catVisit.advance(&cat,now:3,dt:3,speed:18)
+    precondition(cat.x == -220 && cat.y == 200 && !catVisit.hidden)
+    catVisit.advance(&cat,now:6,dt:3,speed:18);precondition(catVisit.hidden)
+    print("PASS: planted cat paw stays anchored and withdraws after six seconds")
     print("PASS: four offscreen entrances, negative display coordinates, walking, exit, hidden stability, smaller sizes")
 }
 
-func petCanvas(_ kind:BugKind) -> CGSize { kind == .mouse ? CGSize(width:182,height:182) : CGSize(width:146,height:140) }
+func petCanvas(_ kind:BugKind) -> CGSize { kind == .catPaw ? CGSize(width:252,height:252) : kind == .mouse ? CGSize(width:182,height:182) : CGSize(width:146,height:140) }
+
+// Ease into a planted pose, rest, then lift and withdraw over six seconds.
+func pawContact(_ elapsed:Double) -> Double {
+    let t=max(0,min(1,elapsed<1.2 ? elapsed/1.2 : elapsed>4.5 ? (6-elapsed)/1.5 : 1))
+    return t*t*(3-2*t)
+}

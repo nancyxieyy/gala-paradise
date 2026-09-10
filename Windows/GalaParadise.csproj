@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>Assets/AppIcon.ico</ApplicationIcon>
+    <AssemblyName>GalaParadise</AssemblyName>
+    <Version>1.2.0</Version>
+    <Company>Gala Paradise</Company>
+    <Product>旮旯乐园</Product>
+    <Description>卡通桌宠 · Gala Paradise</Description>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+  <ItemGroup><EmbeddedResource Include="Assets/AppIcon.ico" /></ItemGroup>
+</Project>

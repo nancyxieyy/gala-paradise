@@ -1,8 +1,18 @@
 # 旮旯乐园 · Gala Paradise
 
-一只旮杂，整台电脑的热闹。macOS 原生卡通桌宠，参考大眼睛、棕色豆子身体和细长触须的形象，用代码绘制可缩放的原创矢量角色。
+一只旮杂，整台电脑的热闹。macOS / Windows 原生卡通桌宠，参考大眼睛、棕色豆子身体和细长触须的形象，用代码绘制可缩放的原创矢量角色。
 
 ![旮旯乐园界面](Resources/preview.png)
+
+## 1.2 · Mac 和 Windows 朋友测试版
+
+可分享包在 `releases/`：Mac Universal ZIP（Apple Silicon + Intel，macOS 13+）与 Windows x64 ZIP（自带 .NET 运行环境的 EXE）。Windows 使用右下角托盘图标换工具，与 Mac 顶部图标对应。Windows 原生版本位于 `Windows/`，使用 WinForms、透明分层窗口与 Shell COM 读取前台文件夹位置。
+
+Windows 发布包已做交叉编译，跨平台玩法测试位于 `Tests/CoreTests`。本机无法运行 Windows 原生桌面，托盘、窗口、资源管理器需 Windows 真机测试。先退出正在运行的桌宠，再在 Windows 上运行 `GalaParadise.exe --smoke-test`；日志写到 `%TEMP%/GalaParadise-smoke.txt`，不读写玩家存档。`.github/workflows/windows.yml` 提供可手动触发的 Windows CI，尚未上传或执行。
+
+这是未签名内测包，不是已公证／签名的正式发布版。系统阻止时请保留提示反馈，不需更改系统保护。完整朋友测试说明随 ZIP 一起提供。
+
+构建双平台：安装 .NET 10 SDK 和 macOS Command Line Tools，然后执行 `GALA_DOTNET=/path/to/dotnet ./build-release.sh`。开发机已在 `build/toolchain/dotnet/` 放置经 SHA-512 校验的微软官方 SDK，脚本默认使用它。构建脚本与测试源码都不依赖个人存档。
 
 ## 1.1 更新
 
@@ -51,14 +61,14 @@
 
 ## 从源码构建
 
-需要 macOS 13+ 与 Xcode Command Line Tools。当前交付是 Apple Silicon 本机版本。
+需要 macOS 13+ 与 Xcode Command Line Tools。`build.sh` 生成当前 Mac 架构的开发版；`package-release.sh` 生成 Mac Universal 和 Windows x64 分享包。
 
 ```sh
 ./build.sh
 open build/旮旯乐园.app
 ```
 
-`build.sh` 编译 AppKit 程序、打包应用、做本地 ad-hoc 签名并执行模型测试。当前应用不是 App Store / Developer ID 公证发行包，适合本机使用。
+`build.sh` 编译 AppKit 程序、打包应用、做本地 ad-hoc 签名并执行模型测试。当前应用不是 App Store / Developer ID 公证发行包，分享包目前用于受邀内测。
 
 ```sh
 # 模型规则（锁定、飞行、工具效果、存档编解码）

@@ -1,0 +1,27 @@
+name: Windows beta validation
+on: [workflow_dispatch]
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet run --project Tests/CoreTests -c Release
+      - run: dotnet publish Windows/GalaParadise.csproj -c Release -r win-x64 -o build/windows-x64
+      - name: Native Windows smoke test
+        shell: pwsh
+        run: |
+          $process = Start-Process build/windows-x64/GalaParadise.exe -ArgumentList '--smoke-test' -PassThru
+          if (-not $process.WaitForExit(60000)) { $process.Kill(); throw 'Smoke test timed out' }
+          Get-Content "$env:TEMP/GalaParadise-smoke.txt"
+          if ($process.ExitCode -ne 0) { throw 'Smoke test failed' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-beta
+          path: |
+            build/windows-x64/
+            ${{ runner.temp }}/GalaParadise-smoke.txt
+            ${{ runner.temp }}/GalaParadise-windows-preview.png

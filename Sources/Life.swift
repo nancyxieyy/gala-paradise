@@ -110,5 +110,14 @@ func runLifeTests(){
     var legacy=try! JSONSerialization.jsonObject(with:JSONEncoder().encode(g)) as! [String:Any];legacy.removeValue(forKey:"life")
     var migrated=try! JSONDecoder().decode(GameState.self,from:JSONSerialization.data(withJSONObject:legacy));migrated.ensureLife();precondition(migrated.residents.count==1 && migrated.life!.cards.isEmpty)
     let restored=try! JSONDecoder().decode(Life.self,from:JSONEncoder().encode(l));precondition(restored.notes.count==1 && restored.protects(r.id))
+    for kind in [BugKind.mouse,.catPaw] {
+        var game=GameState();game.progression!.owned=Tool.allCases
+        let animal=Resident(kind:kind,x:120,y:140,born:0);game.residents=[animal]
+        for (index,tool) in Tool.allCases.enumerated(){let now=1000+Double(index)*21;let response=game.use(tool,on:animal.id,now:now,flightRoll:1);precondition(!response.isEmpty && game.residents[0].live && (game.residents[0].reactionUntil ?? 0)>now && game.captures==0)}
+        let count=game.life!.bonds[animal.id.uuidString.lowercased()]!.trust
+        _=game.use(.pinch,on:animal.id,now:2000,flightRoll:1);_=game.use(.pinch,on:animal.id,now:2001,flightRoll:1)
+        precondition(game.life!.bonds[animal.id.uuidString.lowercased()]!.trust==count+1)
+    }
+    print("PASS: all five tools react on mouse/cat without damage; repeated clicks preserve relationship cooldown")
     print("PASS: bonds, cooldown, protection, one-time gold, adoption deduplication, private stash, focus and persistence")
 }

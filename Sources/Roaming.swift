@@ -31,6 +31,7 @@ struct Visit {
     }
     mutating func advance(_ r:inout Resident, now:Double,dt:Double,speed:Double) {
         guard !hidden else{return}
+        if now < (r.holdUntil ?? 0) {deadline+=max(0,dt);if r.kind == .catPaw {r.born+=max(0,dt)};return}
         if r.kind == .catPaw {if now-r.born>=6 {hidden=true};return}
         if !exiting && now>=deadline {
             exiting=true
@@ -70,6 +71,11 @@ func runRoamingTests() {
     catVisit.advance(&cat,now:3,dt:3,speed:18)
     precondition(cat.x == -220 && cat.y == 200 && !catVisit.hidden)
     catVisit.advance(&cat,now:6,dt:3,speed:18);precondition(catVisit.hidden)
+    var held=Resident(kind:.mouse,x:-500,y:200,born:0);held.holdUntil=5
+    var heldVisit=Visit(hidden:false,exiting:false,deadline:3,target:CGPoint(x:-300,y:200),screen:f)
+    heldVisit.advance(&held,now:2,dt:1,speed:145);precondition(held.x == -500 && held.y==200 && !heldVisit.hidden)
+    heldVisit.advance(&held,now:6,dt:0.1,speed:145);precondition(held.x != -500 || held.y != 200)
+    print("PASS: hover/menu hold stops movement and resumes afterwards")
     print("PASS: planted cat paw stays anchored and withdraws after six seconds")
     print("PASS: four offscreen entrances, negative display coordinates, walking, exit, hidden stability, smaller sizes")
 }

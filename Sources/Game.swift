@@ -17,6 +17,8 @@ struct Resident: Codable, Identifiable {
     var vx: Double = 0
     var vy: Double = 0
     var flyingUntil: Double = 0
+    var holdUntil:Double?
+    var reactionUntil:Double?
     var carryUntil:Double?
     var tauntUntil: Double = 0
     var friend:Bool {kind == .mouse || kind == .catPaw}
@@ -44,8 +46,7 @@ struct GameState: Codable {
         guard let i = residents.firstIndex(where: { $0.id == id }) else { return "" }
         ensureLife()
         let kind = residents[i].kind
-        if protected(residents[i]) {return "这是受保护的住客，请在住客手册里与它互动"}
-        if residents[i].friend {return kind == .mouse ? "吱～新朋友只是路过" : "猫爪轻轻碰了碰你 ♡"}
+        if protected(residents[i]) || residents[i].friend {return playfulUse(tool,on:id,now:now)}
         if residents[i].live {
             if tool == .cleaner { return "清洁剂只擦污渍，旮杂笑你了" }
             
@@ -120,4 +121,21 @@ func runModelTests() {
     precondition(restored.xp == g.xp && restored.captures == g.captures)
     precondition(restored.residents.count == 3 && restored.residents[2].kind == .stain && restored.poisoned && restored.quiet)
     print("PASS: tool locks, flying/landing, pinch stain, cleanup compatibility, vacuum, progression, save round-trip")
+}
+
+extension GameState {
+    mutating func playfulUse(_ tool:Tool,on id:UUID,now:Double)->String {
+        guard let i=residents.firstIndex(where:{$0.id==id}) else{return ""}
+        ensureLife();let r=residents[i]
+        residents[i].holdUntil=now+1.5;residents[i].reactionUntil=now+0.55
+        if r.kind == .catPaw {residents[i].born=now-2}
+        if tool == .pinch {_=life!.interact(r,action:"pet",text:"",now:now)}
+        switch tool {
+        case .pinch:return r.kind == .catPaw ? "呼噜～再摸一下 ♡" : "蹭蹭你的手 ♡"
+        case .slipper:return r.kind == .catPaw ? "啪！猫爪接住了拖鞋" : "嗖！侧身躲开，还回头看你"
+        case .poison:return "阿嚏！抖掉泡沫，瞪你一眼"
+        case .vacuum:return r.kind == .catPaw ? "爪子按住吸嘴：不许吸！" : "呼——毛都吹乱啦！"
+        case .cleaner:return "擦擦脸，亮晶晶 ✦"
+        }
+    }
 }

@@ -58,12 +58,12 @@ static class Art {
         }
         g.Restore(save);
     }
-    public static void Effect(Graphics g,Tool tool,double elapsed){
+    public static void Effect(Graphics g,Tool tool,double elapsed,bool playful=false){
         g.SmoothingMode=SmoothingMode.AntiAlias;
         if(tool==Tool.Poison){
             if(elapsed<.65){Round(g,new(68,28,22,47),Color.FromArgb(168,195,160),6);Round(g,new(63,21,23,8),Ink,2);Oval(g,Color.FromArgb(237,197,166),79,49,23,17,Ink);Line(g,Color.FromArgb(237,197,166),13,new(98,59),new(110,83));for(int i=0;i<5;i++)Line(g,Color.FromArgb(191,217,218),1.5f,new(63,25),new(20,18+i*9));Text(g,"呲——",4,0,13,Moss,true);}
             for(int i=0;i<9;i++)Oval(g,Color.FromArgb(232,243,232),8+i%4*13,60+i/4*10,17,16,Color.FromArgb(190,213,190),1);
-        }else if(tool==Tool.Slipper){Text(g,"啪！",15,4,18,Orange,true);Oval(g,Color.FromArgb(233,175,109),60,24,22,52,Ink);Line(g,Moss,3,new(63,51),new(71,39),new(79,53));}
-        else{Text(g,tool==Tool.Vacuum?"咻——":tool==Tool.Cleaner?"亮晶晶 ✧":"噗叽！",8,20,16,Moss,true);for(int n=0;n<4;n++)Line(g,Moss,2,new(25,50+n*9),new(75,45+n*6));}
+        }else if(tool==Tool.Slipper){if(!playful)Text(g,"啪！",15,4,18,Orange,true);Oval(g,Color.FromArgb(233,175,109),60,24,22,52,Ink);Line(g,Moss,3,new(63,51),new(71,39),new(79,53));}
+        else{if(!playful)Text(g,tool==Tool.Vacuum?"咻——":tool==Tool.Cleaner?"亮晶晶 ✧":"噗叽！",8,20,16,Moss,true);for(int n=0;n<4;n++)Line(g,Moss,2,new(25,50+n*9),new(75,45+n*6));}
     }
 }

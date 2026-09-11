@@ -29,15 +29,16 @@ final class PetPanel: NSPanel {
 }
 final class EffectView:NSView {
     let tool:Tool
+    let playful:Bool
     let born=Date().timeIntervalSince1970
     override var isFlipped:Bool {true}
-    init(tool:Tool) {self.tool=tool;super.init(frame:NSRect(x:0,y:0,width:146,height:140))}
+    init(tool:Tool,playful:Bool=false) {self.tool=tool;self.playful=playful;super.init(frame:NSRect(x:0,y:0,width:146,height:140))}
     required init?(coder:NSCoder) {fatalError()}
     override func draw(_ dirtyRect:NSRect) {
         let text:String
         switch tool {case .pinch:text="噗叽！";case .slipper:text="啪！";case .vacuum:text="咻——";case .cleaner:text="亮晶晶 ✧";case .poison:text="躺平。"}
-        paintRect(NSRect(x:23,y:25,width:100,height:32),cream,radius:15,stroke:ink,width:2)
-        label(text,35,30,size:16,weight:.heavy,c:tool == .slipper ? orange : moss,width:90)
+        if !playful {paintRect(NSRect(x:23,y:25,width:100,height:32),cream,radius:15,stroke:ink,width:2)
+        label(text,35,30,size:16,weight:.heavy,c:tool == .slipper ? orange : moss,width:90)}
         if tool == .poison {drawSpray(in:bounds,elapsed:Date().timeIntervalSince1970-born)} else if tool == .vacuum {
             for n in 0..<3 {line([NSPoint(x:25,y:70+CGFloat(n)*12),NSPoint(x:77,y:65+CGFloat(n)*9),NSPoint(x:106,y:75)],moss,2)}
         } else if tool == .slipper {
@@ -62,7 +63,8 @@ final class PetView: NSView {
             let clip=NSBezierPath(rect:bounds);clip.windingRule = .evenOdd
             clip.appendRect(NSRect(x:entry.frame.minX-r.x,y:bounds.height-entry.frame.maxY+r.y,width:entry.frame.width,height:entry.frame.height));clip.addClip()
         }
-        drawBug(in:NSRect(x:(bounds.width-size)/2,y:bounds.height-size,width:size,height:size),kind:r.kind,phase:r.kind == .catPaw ? now-r.born : now,flying:r.flyingUntil>now,facing:r.vx>=0 ? 1 : -1)
+        let bounce=(r.reactionUntil ?? 0)>now ? sin(((r.reactionUntil ?? now)-now)*32)*4 : 0
+        drawBug(in:NSRect(x:(bounds.width-size)/2+bounce,y:bounds.height-size,width:size,height:size),kind:r.kind,phase:r.kind == .catPaw ? now-r.born : now,flying:r.flyingUntil>now,facing:r.vx>=0 ? 1 : -1)
         if (r.carryUntil ?? 0)>now {
             paintRect(NSRect(x:bounds.width/2,y:bounds.height-28,width:28,height:23),cream,radius:3,stroke:ink)
             for y in [8.0,14.0] {line([NSPoint(x:bounds.width/2+5,y:bounds.height-28+y),NSPoint(x:bounds.width/2+23,y:bounds.height-28+y)],moss,1)}
@@ -72,102 +74,43 @@ final class PetView: NSView {
             label(r.flyingUntil>now ? "打不到～我会飞！" : "你以为没有了？",13,11,size:11,weight:.semibold,width:128)
         }
     }
-    override func mouseDown(with event:NSEvent) { engine?.interact(id) }
+    override func mouseDown(with event:NSEvent) {if event.modifierFlags.contains(.control) {engine?.animalMenu(id,event:event,in:self)}else{engine?.interact(id)}}
+    override func rightMouseDown(with event:NSEvent){engine?.animalMenu(id,event:event,in:self)}
+    override func otherMouseDown(with event:NSEvent){engine?.interact(id)}
     override func accessibilityPerformPress() -> Bool { engine?.interact(id); return true }
     override func resetCursorRects() { addCursorRect(bounds,cursor:.pointingHand) }
 }
 
 final class Dashboard: NSView {
-    weak var engine: Paradise?
+    weak var engine:Paradise?
     var tools:[Tool:ActionButton]=[:]
     var pauseButton:ActionButton!
-    var quietButton:ActionButton!
-    var finderButton:ActionButton!
-    override var isFlipped: Bool { true }
-    init(engine:Paradise) {
-        self.engine=engine; super.init(frame:NSRect(x:0,y:0,width:980,height:748))
-        addSubview(ActionButton("住客手册 · 互动与成就 ↗",frame:NSRect(x:455,y:281,width:210,height:43)){[weak engine] in engine?.showLife()})
-        func button(_ title:String,_ frame:NSRect,_ fill:NSColor = color(0xE8E9DB),_ action:@escaping ()->Void) -> ActionButton {
-            let b=ActionButton(title,frame:frame,fill:fill,action:action); addSubview(b); return b
-        }
-        _ = button("＋ 撒点面包屑",NSRect(x:55,y:281,width:162,height:43),moss,{[weak engine] in engine?.feed()}); (subviews.last as? ActionButton)?.textColor=cream
-        _ = button("放它们去桌面 ↗",NSRect(x:229,y:281,width:172,height:43),color(0xE6E7D7),{[weak engine] in engine?.release()})
-        _ = button("▰  工作资料",NSRect(x:62,y:408,width:164,height:60),color(0xEDCE91),{[weak engine] in engine?.previewFolder("工作资料",point:NSPoint(x:120,y:450))})
-        _ = button("▰  绝对干净",NSRect(x:244,y:408,width:164,height:60),color(0xEDCE91),{[weak engine] in engine?.previewFolder("绝对干净",point:NSPoint(x:300,y:450))})
-        let growth=button("生长速度 ↗",NSRect(x:720,y:507,width:105,height:28),color(0xE8E9DB),{[weak engine] in engine?.showGrowthMenu()});growth.small=true
-        let scan=button("杀毒扫描",NSRect(x:833,y:507,width:105,height:28),color(0xE8E9DB),{[weak engine] in engine?.scan()});scan.small=true
-        finderButton=button("连接 Finder ↗",NSRect(x:683,y:438,width:230,height:34),color(0xE6E7D7),{[weak engine] in engine?.connectFinder()})
-        for (n,tool) in Tool.allCases.enumerated() {
-            let b=button(tool.title,NSRect(x:40+CGFloat(n)*183,y:537,width:172,height:62),color(0xE8E9DB),{[weak engine] in engine?.select(tool)})
-            tools[tool]=b
-        }
-        pauseButton=button("暂停桌宠",NSRect(x:613,y:672,width:106,height:35),color(0xE8E9DB),{[weak engine] in engine?.togglePause()}); pauseButton.small=true
-        quietButton=button("专注模式",NSRect(x:727,y:672,width:106,height:35),color(0xE8E9DB),{[weak engine] in engine?.toggleQuiet()}); quietButton.small=true
-        let hide=button("收起面板 ↗",NSRect(x:841,y:672,width:99,height:35),color(0xE8E9DB),{[weak engine] in engine?.window.orderOut(nil)}); hide.small=true
+    var quietButton:ActionButton?
+    var finderButton:ActionButton?
+    override var isFlipped:Bool{true}
+    init(engine:Paradise){
+        self.engine=engine;super.init(frame:NSRect(x:0,y:0,width:620,height:420))
+        func button(_ title:String,_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ action:@escaping ()->Void)->ActionButton {let b=ActionButton(title,frame:NSRect(x:x,y:y,width:w,height:40),action:action);addSubview(b);return b}
+        let settings=button("···",548,22,44){[weak engine] in engine?.showOptions()};settings.small=true
+        for (i,t) in Tool.allCases.enumerated(){let b=button(t.title,28+CGFloat(i)*114,245,108){[weak engine] in engine?.select(t)};b.small=true;tools[t]=b}
+        let feed=button("＋ 喂一点",28,318,132){[weak engine] in engine?.feed()};feed.fillColor=moss;feed.textColor=cream
+        _=button("去桌面玩",170,318,132){[weak engine] in engine?.release()}
+        _=button("我的小窝",312,318,132){[weak engine] in engine?.showLife()}
+        pauseButton=button("歇一会儿",454,318,138){[weak engine] in engine?.togglePause()}
     }
-    required init?(coder:NSCoder) { fatalError() }
-    func refresh() {
-        guard let e=engine else{return}
-        for (tool,b) in tools {
-            let unlocked=e.state.unlocked.contains(tool)
-            b.title=unlocked ? tool.title+(e.state.tool==tool ? "  ✓" : "") : tool.title + " · " + String(tool.cost) + " 金壳"
-            b.fillColor=e.state.tool==tool ? moss : unlocked ? color(0xE8E9DB) : color(0xEFEEE5)
-            b.textColor=e.state.tool==tool ? cream : unlocked ? ink : color(0x96988B)
-            b.needsDisplay=true
-        }
-        pauseButton.title=e.paused ? "继续桌宠" : "暂停桌宠"
-        quietButton.title=e.state.quiet ? "专注中 ✓" : "专注模式"
-        finderButton.title=AXIsProcessTrusted() ? "Finder 已连接 ✓" : "连接 Finder ↗"
-        needsDisplay=true
-    }
-    override func draw(_ dirtyRect:NSRect) {
-        guard let e=engine else{return}; let g=e.state
-        paintRect(bounds,cream)
-        label("旮旯乐园",40,29,size:25,weight:.heavy)
-        label("G A L A   P A R A D I S E",41,64,size:9,weight:.bold,c:moss)
-        paintRect(NSRect(x:737,y:36,width:203,height:31),color(0xE7E9DA),radius:15)
-        oval(NSRect(x:752,y:47,width:7,height:7),e.paused ? orange : moss)
-        label(e.paused ? "暂时安静 · 桌宠已暂停" : "在外 " + String(e.visibleLiveCount) + " 只 · 角落藏着 " + String(g.residents.filter{$0.live}.count-e.visibleLiveCount) + " 只",768,42,size:11,weight:.medium)
-        line([NSPoint(x:40,y:93),NSPoint(x:940,y:93)],color(0xDDDECF),1)
-        paintRect(NSRect(x:40,y:114,width:900,height:233),color(0xE8EBD9),radius:22)
-        label("一只旮杂，整台电脑的热闹。",56,133,size:11,weight:.semibold,c:moss)
-        label("欢迎入住，",54,158,size:35,weight:.heavy)
-        label("你的电脑有新房客。",54,200,size:35,weight:.heavy)
-        label("喂一点，养一窝。清干净了？它可不这么想。",57,253,size:13,c:color(0x6F7562))
-        // Character display with a paper specimen tag.
-        oval(NSRect(x:674,y:167,width:208,height:150),color(0xD7DCC2))
-        drawBug(in:NSRect(x:682,y:132,width:192,height:192),phase:Date().timeIntervalSince1970)
-        paintRect(NSRect(x:810,y:143,width:94,height:30),cream,radius:13)
-        label("你好，室友。",821,149,size:11,weight:.medium)
-        label("NO. 001 / 旮杂",721,316,size:10,weight:.bold,c:moss)
-        label("01  /  文件夹栖息地",40,367,size:15,weight:.bold)
-        label("点开看看，里面可能有惊喜。",40,389,size:11,c:color(0x7A7D6C))
-        label(g.poisoned ? "已投药 · 成虫躺平，卵仍然会孵化" : "试玩文件夹 · 点击即有旮杂跑出来",64,478,size:11,c:g.poisoned ? orange : color(0x858573))
-        paintRect(NSRect(x:446,y:372,width:494,height:117),color(0xEFEEE4),radius:17)
-        let live=g.residents.filter{$0.live}.count, eggs=g.residents.filter{$0.kind == .egg}.count, mess=g.residents.filter{$0.kind == .stain || $0.kind == .corpse}.count
-        for (n,pair) in [("住客",live),("卵窝",eggs),("待清洁",mess)].enumerated() {
-            let x:CGFloat=468+CGFloat(n)*80
-            label("\(pair.1)",x,388,size:25,weight:.bold)
-            label(pair.0,x,422,size:10,c:color(0x777E69))
-        }
-        label("真正藏进 Finder",701,388,size:15,weight:.bold)
-        label("授权辅助功能后，打开文件夹触发出逃。",701,414,size:10,c:color(0x777E69),width:225)
-        label("02  /  旮杂应对工具箱",40,510,size:15,weight:.bold)
-        label("生长 "+String(e.habitat.rate)+"×",593,514,size:11,c:moss)
-        for (n,tool) in Tool.allCases.enumerated() {
-            let descriptions=["噗叽！会留奶油污渍","啪！但它可能会飞","开文件夹时批量躺平","活的、死的、卵，都能吸","最后一步：把污渍擦掉"]
-            label(descriptions[n],45+CGFloat(n)*183,607,size:10,c:color(0x818572),width:171)
-            if tool == .poison && g.poisoned { oval(NSRect(x:558,y:544,width:6,height:6),orange) }
-        }
-        line([NSPoint(x:40,y:641),NSPoint(x:940,y:641)],color(0xDDDECF),1)
-        label("LV.\(g.level)  共生计划",40,660,size:12,weight:.bold,c:moss)
-        label("金壳 "+String(g.progression?.shells ?? 0),199,662,size:11,c:orange)
-        paintRect(NSRect(x:40,y:686,width:234,height:5),color(0xDFE1D1),radius:2)
-        paintRect(NSRect(x:40,y:686,width:234*min(1,CGFloat(g.xp)/28),height:5),moss,radius:2)
-        label(g.unlocked.count==5 ? "全工具已解锁 · 旮杂永远有下一招" : "下一件：\(Tool.allCases.first{!g.unlocked.contains($0)}?.title ?? "已全部兑换")",40,700,size:10,c:color(0x818572))
-        label(e.message,300,665,size:12,weight:.medium,c:orange,width:302)
-        label(g.tool.detail,300,689,size:10,c:color(0x818572),width:302)
-        label("顶部蟑螂图标随时召回  ·  ⌘Q 退出  ·  污渍仅为桌宠图层",40,728,size:9,c:color(0x959887))
+    required init?(coder:NSCoder){fatalError()}
+    func refresh(){guard let e=engine else{return};for (t,b) in tools {let owns=e.state.unlocked.contains(t);b.title=t.title+(owns ? "" : " · \(t.cost) ✦");b.fillColor=e.state.tool==t ? moss : color(0xEBECDD);b.textColor=e.state.tool==t ? cream : ink;b.needsDisplay=true};pauseButton.title=e.paused ? "继续玩" : "歇一会儿";needsDisplay=true}
+    override func draw(_ dirtyRect:NSRect){guard let e=engine else{return};paintRect(bounds,cream)
+        label("旮旯乐园",28,26,size:23,weight:.heavy);label("你的桌面，有几个小住客。",29,59,size:11,c:moss)
+        paintRect(NSRect(x:28,y:96,width:564,height:126),color(0xE8ECD9),radius:22)
+        label("碰一下，就有回应。",46,119,size:24,weight:.bold)
+        label("左键用工具，右键交朋友。",47,158,size:14,c:moss)
+        label(e.paused ? "它们在休息" : "路过时把鼠标靠近，它会停下来等你。",47,186,size:11,c:moss)
+        drawBug(in:NSRect(x:466,y:98,width:115,height:115),phase:Date().timeIntervalSince1970)
+        label("今天拿什么逗它们？",30,226,size:11,c:moss)
+        label("✦ \(e.state.progression?.shells ?? 0)",525,226,size:11,weight:.semibold,c:moss)
+        label("旮杂会躲，老鼠会抖毛，猫爪会接招。",30,293,size:11,c:moss)
+        label(e.message,30,376,size:12,c:moss,width:560)
     }
 }
 
@@ -178,6 +121,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var isTestRun:Bool { CommandLine.arguments.contains("--smoke") || CommandLine.arguments.contains("--render") || CommandLine.arguments.contains("--integration-test") }
     var window:NSWindow!
     var lastLifeRefresh:Double=0
+    var reactions:[UUID:PetPanel]=[:]
     var tracePanel:PetPanel?
     var lifeController:LifeController?
     var dashboard:Dashboard!
@@ -206,7 +150,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         state.migrateProgression();state.ensureLife();state.life!.focusRemaining=0
         if !isTestRun,let data=try? Data(contentsOf:saveURL.deletingLastPathComponent().appendingPathComponent("habitat.json")),let restored=try? JSONDecoder().decode(Habitat.self,from:data) {habitat=restored;habitat.rate=[0.25,1,3].contains(habitat.rate) ? habitat.rate : 1}
         let menu=NSMenu(); let appItem=NSMenuItem(); menu.addItem(appItem); let appMenu=NSMenu(); appMenu.addItem(withTitle:"关于旮旯乐园",action:#selector(showDashboard),keyEquivalent:""); appMenu.addItem(.separator()); appMenu.addItem(withTitle:"退出旮旯乐园",action:#selector(NSApplication.terminate(_:)),keyEquivalent:"q"); appItem.submenu=appMenu; NSApp.mainMenu=menu
-        window=NSWindow(contentRect:NSRect(x:0,y:0,width:980,height:748),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false)
+        window=NSWindow(contentRect:NSRect(x:0,y:0,width:620,height:420),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false)
         window.title="旮旯乐园 · Gala Paradise"; window.titlebarAppearsTransparent=true; window.backgroundColor=cream; window.isReleasedWhenClosed=false; window.delegate=self
         dashboard=Dashboard(engine:self); window.contentView=dashboard; window.center()
         status=NSStatusBar.system.statusItem(withLength:32)
@@ -228,7 +172,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         m.addItem(heading);m.addItem(withTitle:"黄金卵壳："+String(state.progression?.shells ?? 0),action:nil,keyEquivalent:"");m.addItem(withTitle:"新朋友："+(state.progression?.seen.isEmpty == false ? state.progression!.seen.map{$0 == "mouse" ? "老鼠" : "猫爪"}.joined(separator:"、") : "老鼠 3 分钟 / 猫爪 10 分钟"),action:nil,keyEquivalent:"");m.addItem(.separator())
         status.button?.toolTip="旮旯乐园 · 当前："+state.tool.title+" · 点击换工具"
         func item(_ title:String,_ action:Selector,_ key:String="") { let i=NSMenuItem(title:title,action:action,keyEquivalent:key); i.target=self; m.addItem(i) }
-        item("住客手册 · 互动 / 支线 / 成就",#selector(showLife));
+        item("我的小窝 · 伙伴 / 纸条 / 成就",#selector(showLife));
         item("打开旮旯乐园",#selector(showDashboard)); item("撒点面包屑  +3",#selector(feed)); item(paused ? "继续桌宠" : "暂停并隐藏桌宠",#selector(togglePause)); item(state.quiet ? "关闭专注模式" : "开启专注模式",#selector(toggleQuiet))
         m.addItem(.separator())
         for t in Tool.allCases { let i=NSMenuItem(title:state.unlocked.contains(t) ? t.title : "\(t.title)（\(t.cost) 金壳兑换）",action:#selector(menuTool(_:)),keyEquivalent:""); i.target=self; i.representedObject=t.rawValue; i.image=NSImage(systemSymbolName:t.glyph,accessibilityDescription:t.title); i.state=state.tool==t ? .on : .off; m.addItem(i) }
@@ -237,10 +181,10 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let growth=NSMenuItem(title:"生长速度",action:nil,keyEquivalent:"");let rates=NSMenu()
         for (name,rate) in [("慢慢长 · 0.25×",0.25),("正常 · 1×",1.0),("疯狂长 · 3×",3.0)] {let i=NSMenuItem(title:name,action:#selector(changeRate(_:)),keyEquivalent:"");i.target=self;i.representedObject=rate;i.state=habitat.rate==rate ? .on : .off;rates.addItem(i)}
         growth.submenu=rates;m.addItem(growth)
-        item("杀毒扫描 · 清理游戏住客",#selector(scan))
+        item("清理游戏痕迹",#selector(scan));item("连接 Finder",#selector(connectFinderMenu));item("试玩文件夹",#selector(tryFolder))
         m.addItem(.separator()); item("退出旮旯乐园",#selector(quit),"q"); status.menu=m
     }
-    func showGrowthMenu(){if let menu=status.menu?.items.first(where:{$0.title=="生长速度"})?.submenu {menu.popUp(positioning:nil,at:NSPoint(x:720,y:535),in:dashboard)}}
+    func showGrowthMenu(){if let menu=status.menu?.items.first(where:{$0.title=="生长速度"})?.submenu {menu.popUp(positioning:nil,at:NSPoint(x:560,y:65),in:dashboard)}}
     @objc func changeRate(_ sender:NSMenuItem) {if let rate=sender.representedObject as? Double {habitat.rate=rate;save();rebuildMenu();tell("生长速度已调整为 "+String(rate)+"×")}}
     @objc func scan() {
         guard state.unlocked.contains(.poison) else {tell("兑换杀虫喷雾后，可使用全局扫描");return}
@@ -328,7 +272,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     func interact(_ id:UUID) {
         guard !paused, !state.focusing, visits[id]?.hidden != true else{return}
-        if let r=state.residents.first(where:{$0.id==id}),r.live,state.life?.safeLeft==true,r.x < (visits[id]?.screen.midX ?? NSScreen.main?.frame.midX ?? 0) {tell("这里是安全窝，住客不会受到伤害");return}
+        if let r=state.residents.first(where:{$0.id==id}),r.live,state.life?.safeLeft==true,r.x < (visits[id]?.screen.midX ?? NSScreen.main?.frame.midX ?? 0) {let msg=state.playfulUse(state.tool,on:id,now:Date().timeIntervalSince1970);tell(msg);showReaction(msg,for:r);showEffect(state.tool,at:NSPoint(x:r.x,y:r.y),playful:true);save();syncPanels();return}
         let old=state.unlocked.count
         let before=state.residents.first{$0.id==id}
         let msg=state.use(state.tool,on:id,now:Date().timeIntervalSince1970,flightRoll:Double.random(in:0...1))
@@ -337,16 +281,17 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if before?.kind == .gold && state.residents.first(where:{$0.id==id})?.live != true {tell("获得 2 枚黄金卵壳 ✦ 点击锁定工具可兑换")}
         if let before=before {
             let after=state.residents.first{$0.id==id}
-            if !before.friend && (state.tool == .poison || after == nil || (before.live && after?.live == false)) {showEffect(state.tool,at:NSPoint(x:before.x,y:before.y))}
+            showReaction(message,for:before)
+            if before.friend || state.protected(before) || state.tool == .poison || after == nil || (before.live && after?.live == false) {showEffect(state.tool,at:NSPoint(x:before.x,y:before.y),playful:before.friend || state.protected(before))}
         }
         save();syncPanels();rebuildMenu()
     }
-    func showEffect(_ tool:Tool,at point:NSPoint) {
+    func showEffect(_ tool:Tool,at point:NSPoint,playful:Bool=false) {
         guard !isTestRun else{return}
         let panel=PetPanel(contentRect:NSRect(x:point.x,y:point.y+30,width:146,height:140),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
         panel.isOpaque=false;panel.backgroundColor = .clear;panel.hasShadow=false;panel.ignoresMouseEvents=true;panel.level = .floating;panel.isReleasedWhenClosed=false;panel.hidesOnDeactivate=false
         panel.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
-        panel.contentView=EffectView(tool:tool);panel.orderFrontRegardless()
+        panel.contentView=EffectView(tool:tool,playful:playful);panel.orderFrontRegardless()
         if tool == .poison {
             let timer=Timer.scheduledTimer(withTimeInterval:1.0/30,repeats:true){[weak panel] timer in guard let p=panel else{timer.invalidate();return};p.contentView?.needsDisplay=true}
             DispatchQueue.main.asyncAfter(deadline:.now()+1.15){timer.invalidate();panel.close()}
@@ -393,6 +338,8 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if state.residents[i].kind == .baby && now-state.residents[i].born>120 && !state.quiet {state.residents[i].kind = .adult}
             guard var visit=visits[id],!visit.hidden else {continue}
             let resident=state.residents[i]
+            let size=desktopSize(resident.kind);let near=NSRect(x:resident.x+(petCanvas(resident.kind).width-size)/2-10,y:resident.y-5,width:size+20,height:size+15)
+            if near.contains(NSEvent.mouseLocation) {state.residents[i].holdUntil=now+0.3}
             if !resident.friend && !state.protected(resident) && now < (state.life?.guardUntil ?? 0) && resident.x>=visit.screen.midX {visits[id]=Visit();changed=true;continue}
             if !resident.friend,(state.life?.bonds[id.uuidString.lowercased()]?.fear ?? 0)>0,hypot(NSEvent.mouseLocation.x-resident.x,NSEvent.mouseLocation.y-resident.y)<120 {visit.exiting=true;visit.target=Visit.nearestExit(from:CGPoint(x:resident.x,y:resident.y),in:visit.screen,kind:resident.kind)}
             let speed=(state.residents[i].kind == .mouse ? 145.0 : state.residents[i].kind == .catPaw ? 18.0 : state.residents[i].flyingUntil>now ? 190.0 : 58.0)*(state.quiet ? 0.4 : 1)
@@ -453,7 +400,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             panels[r.id]?.setFrameOrigin(NSPoint(x:r.x,y:r.y));panels[r.id]?.contentView?.needsDisplay=true
             // Only the visible character captures clicks; the rest of the desktop remains usable.
             let size:Double = desktopSize(r.kind)
-            let hit=NSRect(x:r.x+(petCanvas(r.kind).width-size)/2,y:r.y+size*0.1,width:size,height:size*0.9)
+            let hit=NSRect(x:r.x+(petCanvas(r.kind).width-size)/2-8,y:r.y,width:size+16,height:size)
             panels[r.id]?.ignoresMouseEvents = !hit.contains(NSEvent.mouseLocation) || (entrances[r.id].map{now<$0.until && $0.frame.contains(NSEvent.mouseLocation)} ?? false)
         }
         if tickCount%30==0 {
@@ -666,6 +613,11 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         precondition(panels[mouseResident.id]!.contentView!.bounds.size == petCanvas(.mouse))
         precondition(desktopSize(.mouse) < panels[mouseResident.id]!.frame.width)
         state.ensureLife()
+        let beforeX=state.residents.first{$0.id==mouseResident.id}!.x
+        let choice=NSMenuItem();choice.representedObject=[mouseResident.id.uuidString,"pet"];animalChoice(choice)
+        precondition(state.residents.first{$0.id==mouseResident.id}!.x==beforeX)
+        precondition(state.life!.cards["touch.mouse"] != nil)
+        print("PASS: right-click action stays on the same mouse and records interaction")
         lifeAction("name",id:mouseResident.id,text:"圆耳",note:nil)
         precondition(state.protected(state.residents.first{$0.id==mouseResident.id}!))
         showLife();precondition(lifeController?.window?.isVisible==true)

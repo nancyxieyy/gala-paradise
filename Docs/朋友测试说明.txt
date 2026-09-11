@@ -1,9 +1,9 @@
-旮旯乐园 1.5 · 朋友内测版
+旮旯乐园 1.6 · 朋友内测版
 
 选哪个文件？
-• Mac：GalaParadise-1.5-macOS-Universal.zip
+• Mac：GalaParadise-1.6-macOS-Universal.zip
   macOS 13 或更新系统，同时支持 Apple M 系列与 Intel Mac。
-• Windows：GalaParadise-1.5-Windows-x64.zip
+• Windows：GalaParadise-1.6-Windows-x64.zip
   Windows 10 22H2 / Windows 11，64 位 Intel / AMD 电脑。
   这是自带 .NET 运行环境的程序，不用另装 .NET。Windows ARM 不是本次的原生构建目标。
 
@@ -69,3 +69,10 @@ Windows：%LOCALAPPDATA%\GalaParadise\save.json
 • 领养码是主动复制和接收的离线副本，不传纸条、资源、信任或成就；无服务端身份认证。
 • 22 个成就在卡册查看。请重点反馈误杀伙伴、重复奖励、专注被打断、纸条取回和跨平台领养问题。
 • 当前是支线基础版：脚印探索场景、固定左右区域；更多剧情与卡面插画尚未制作。
+
+1.6 操作更新（请以此处为准）
+• 直接左键点动物：使用当前工具。猫、老鼠、命名或驯养过的住客都会有安全的专属反应。
+• 右键点动物：抚摸、投喂、命名、成为伙伴；符合条件时还可巡逻、收下金壳。Mac 的 Control + 单击也可以。
+• 鼠标靠近时会停一下，菜单操作不把动物搬走。连续点击仍有反馈，但不会反复刷好感。
+• 主界面精简为小工具盒，设置在右上角「···」。我的小窝分伙伴 / 纸条 / 专注 / 成就四页。
+• 请重点反馈：路过老鼠是否好点、五种工具的反应、右键操作是否顺手、旧存档是否保留。

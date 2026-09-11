@@ -2,7 +2,7 @@ namespace Gala;
 public partial class Game {
  public string? ClipboardText;
  public void Summon(Resident r,double now){if(Paused||State.Life.FocusRemaining>0)return;var f=Screens[0];r.Screen=f;r.X=r.Kind==Kind.CatPaw?f.Right-220:f.Left+f.Width/2-80;r.Y=f.Top+170;if(r.Kind==Kind.CatPaw)r.Born=now-2;r.TargetX=r.X+80;r.TargetY=r.Y;r.ExitAt=now+8;r.Exiting=false;r.Hidden=false;State.Life.Observe(r,now);}
- public void LifeAction(string action,Guid? id,string text,string? note,double minutes=25){
+ public void LifeAction(string action,Guid? id,string text,string? note,double minutes=25,bool inPlace=false){
   var l=State.Life;double now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/1000.0;ClipboardText=null;
   if((Paused||l.FocusRemaining>0)&&!new[]{"stash","return","done","delete","share","cancel"}.Contains(action)){Message="先结束专注或继续桌宠，再进行动物互动";return;}
   switch(action){
@@ -23,7 +23,7 @@ public partial class Game {
     if(!r.Friend||!l.Bonds.TryGetValue(r.Id.ToString(),out var bond)||!bond.Partner){Message="请选择已成为伙伴的老鼠或猫";return;}if(now<l.GuardUntil){Message="伙伴还在值班，右半屏正在保持安静";return;}
     var targets=State.Residents.Where(x=>x.Live&&!x.Friend&&!l.Protects(x.Id)&&!x.Hidden&&x.X>=x.Screen.Left+x.Screen.Width/2).ToArray();foreach(var x in targets)x.Hidden=true;l.GuardSide="right";l.GuardUntil=now+60;Summon(r,now);if(targets.Length>0)l.Award(r.Kind==Kind.Mouse?"patrol.first":"guard.first",now);Message=$"右半屏值班 60 秒 · 驱赶 {targets.Length} 只；不伤害伙伴、不产生击杀奖励";break;
    case "gold":if(r.Kind!=Kind.Gold||!l.Bonds.TryGetValue(r.Id.ToString(),out var b)||b.Trust<2){Message="黄金旮杂信任达到 2 后，会留下一次卵壳";return;}int amount=l.Gold(r.Id,now);State.Progression.Shells+=amount;Message=amount>0?"它留给你 2 枚黄金卵壳，仍可以继续做朋友":"这位住客的卵壳已收获过啦";break;
-   default:Summon(r,now);Message=action=="recall"?"它听见你了，出来见一面":l.Interact(r,action,text,now);break;
+   default:if(!inPlace)Summon(r,now);Message=action=="recall"?"它听见你了，出来见一面":l.Interact(r,action,text,now);break;
   }
  }
 }

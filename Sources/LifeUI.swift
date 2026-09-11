@@ -4,53 +4,72 @@ final class LifeCardsView:NSView {
  var life=Life();var message=""
  override var isFlipped:Bool{true}
  override func draw(_ dirtyRect:NSRect){
-  cream.setFill();bounds.fill();label(message,10,8,size:12,width:730)
-  label("脚印："+(life.traceReady ? "发现碎屑，可追踪" : "等待新的痕迹")+" · 安全窝："+(life.safeLeft ? "开启" : "关闭")+" · 专注剩余 "+String(Int(life.focusRemaining))+" 秒",10,48,size:12,width:730)
-  for (i,a) in Life.achievements.enumerated(){let x=CGFloat(i%2)*375+5,y=CGFloat(i/2)*79+83;let earned=life.cards[a.0]
-   paintRect(NSRect(x:x,y:y,width:365,height:69),earned == nil ? color(0xECEBDF) : color(0xDDE6CD),radius:12)
-   label((earned == nil ? "○ " : "✦ ")+a.1,x+12,y+10,size:14,weight:.semibold,width:339)
-   label(earned.map{Date(timeIntervalSince1970:$0).formatted(date:.abbreviated,time:.shortened)} ?? "尚未发现 · 不必集齐每条支线",x+12,y+39,size:11,width:339)
+  cream.setFill();bounds.fill();label(message,10,8,size:12,width:bounds.width-20)
+  label("脚印："+(life.traceReady ? "发现碎屑，可追踪" : "等待新的痕迹")+" · 安全窝："+(life.safeLeft ? "开启" : "关闭")+" · 专注剩余 "+String(Int(life.focusRemaining))+" 秒",10,48,size:12,width:bounds.width-20)
+  for (i,a) in Life.achievements.enumerated(){let column=bounds.width/2;let x=CGFloat(i%2)*column+5,y=CGFloat(i/2)*79+83;let earned=life.cards[a.0]
+   paintRect(NSRect(x:x,y:y,width:column-10,height:69),earned == nil ? color(0xECEBDF) : color(0xDDE6CD),radius:12)
+   label((earned == nil ? "○ " : "✦ ")+a.1,x+12,y+10,size:14,weight:.semibold,width:column-34)
+   label(earned.map{Date(timeIntervalSince1970:$0).formatted(date:.abbreviated,time:.shortened)} ?? "尚未发现 · 不必集齐每条支线",x+12,y+39,size:11,width:column-34)
   }
  }
 }
 
+final class CompanionPreview:NSView {
+ var kind:BugKind = .adult {didSet{needsDisplay=true}}
+ override var isFlipped:Bool{true}
+ override func draw(_ rect:NSRect){drawBug(in:bounds.insetBy(dx:5,dy:5),kind:kind,phase:kind == .catPaw ? 3 : 0)}
+}
 final class LifeController:NSWindowController {
  weak var engine:Paradise?
  let guests=NSPopUpButton();let input=NSTextField();let notes=NSPopUpButton();let minutes=NSTextField(string:"25");let report=NSTextView();let cards=LifeCardsView()
+ var tabs:NSSegmentedControl!;var panes:[NSView]=[];var portrait:CompanionPreview!;let focusStatus=NSTextField(labelWithString:"");let feedback=NSTextField(labelWithString:"")
  var ids:[UUID]=[];var noteIDs:[String]=[]
  init(_ engine:Paradise){
   self.engine=engine
-  let w=NSWindow(contentRect:NSRect(x:0,y:0,width:830,height:690),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false)
-  super.init(window:w);w.title="住客手册 · 关系 / 纸条 / 支线 / 成就";w.isReleasedWhenClosed=false;w.backgroundColor=cream
-  let v=LifeView(frame:NSRect(x:0,y:0,width:830,height:690));w.contentView=v
-  func title(_ text:String,_ y:CGFloat){let t=NSTextField(labelWithString:text);t.frame=NSRect(x:22,y:y,width:790,height:24);t.font = .systemFont(ofSize:15,weight:.semibold);v.addSubview(t)}
-  func button(_ text:String,_ x:CGFloat,_ y:CGFloat,_ width:CGFloat,_ action:@escaping ()->Void){v.addSubview(ActionButton(text,frame:NSRect(x:x,y:y,width:width,height:32),action:action))}
-  title("01 / 熟悉的住客 · 信任 6 可结为伙伴，每 20 秒一次有效互动",18)
-  guests.frame=NSRect(x:22,y:48,width:650,height:28);v.addSubview(guests);button("刷新",686,46,120){[weak self] in self?.refresh()}
-  input.frame=NSRect(x:22,y:86,width:784,height:28);input.placeholderString="在这里输入名字、纸条、链接或领养码（只处理你主动提交的内容）";v.addSubview(input)
-  let actions=[("召回","recall"),("摸一摸","pet"),("喂一口","feed"),("取名字","name"),("成为伙伴","bond"),("友好取金壳","gold")]
-  for (i,a) in actions.enumerated(){button(a.0,22+CGFloat(i)*132,128,124){[weak self] in self?.perform(a.1)}}
-  title("02 / 小窝收纳 · 动物躲起来也能取回，复制不会删除",179)
-  notes.frame=NSRect(x:22,y:210,width:520,height:28);v.addSubview(notes)
-  button("收好输入内容",550,208,125){[weak self] in self?.perform("stash")};button("复制取回",682,208,124){[weak self] in self?.perform("return")}
-  button("标记 / 取消完成",22,247,160){[weak self] in self?.perform("done")};button("删除选中纸条",190,247,160){[weak self] in self?.perform("delete")}
-  title("03 / 桌面支线 · 安全窝位于左半屏，巡逻位于右半屏",296)
-  button("查看脚印 / 探索",22,326,153){[weak self] in self?.perform("explore")};button("开启 / 关闭安全窝",182,326,174){[weak self] in self?.perform("safe")}
-  button("请伙伴巡逻",365,326,140){[weak self] in self?.perform("patrol")};button("安排共居",514,326,132){[weak self] in self?.perform("coexist")};button("生成领养码",655,326,151){[weak self] in self?.perform("share")}
-  button("接收输入的领养码",22,369,175){[weak self] in self?.perform("adopt")}
-  minutes.frame=NSRect(x:215,y:371,width:50,height:28);v.addSubview(minutes)
-  button("分钟 · 开始专注",274,369,150){[weak self] in self?.perform("focus")};button("结束本次计时",434,369,145){[weak self] in self?.perform("cancel")}
-  title("04 / 成就卡册与动态 · 只记录已完成的事件",423)
-  let scroll=NSScrollView(frame:NSRect(x:22,y:453,width:784,height:212));scroll.hasVerticalScroller=true;scroll.documentView=cards;cards.frame=NSRect(x:0,y:0,width:760,height:970);cards.setAccessibilityElement(true);cards.setAccessibilityLabel("成就卡册");v.addSubview(scroll)
-  w.center();refresh()
+  let w=NSWindow(contentRect:NSRect(x:0,y:0,width:620,height:450),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false)
+  super.init(window:w);w.title="我的小窝";w.isReleasedWhenClosed=false;w.backgroundColor=cream
+  let v=LifeView(frame:NSRect(x:0,y:0,width:620,height:450));w.contentView=v
+  tabs=NSSegmentedControl(labels:["伙伴","纸条","专注","成就"],trackingMode:.selectOne,target:self,action:#selector(tabChanged));tabs.frame=NSRect(x:24,y:22,width:572,height:32);tabs.selectedSegment=0;v.addSubview(tabs)
+  for _ in 0..<4 {let pane=LifeView(frame:NSRect(x:24,y:76,width:572,height:330));v.addSubview(pane);panes.append(pane)}
+  func title(_ text:String,_ y:CGFloat,_ pane:Int){let t=NSTextField(labelWithString:text);t.frame=NSRect(x:0,y:y,width:560,height:30);t.font = .systemFont(ofSize:16,weight:.semibold);panes[pane].addSubview(t)}
+  func button(_ text:String,_ x:CGFloat,_ y:CGFloat,_ width:CGFloat,_ pane:Int,_ action:@escaping ()->Void){panes[pane].addSubview(ActionButton(text,frame:NSRect(x:x,y:y,width:width,height:38),action:action))}
+  title("熟悉的身影",0,0);guests.frame=NSRect(x:0,y:42,width:360,height:30);panes[0].addSubview(guests)
+  guests.target=self;guests.action=#selector(guestChanged)
+  portrait=CompanionPreview(frame:NSRect(x:382,y:30,width:165,height:165));panes[0].addSubview(portrait)
+  title("叫它出来，在身上右键交朋友。",94,0)
+  button("出来玩",0,137,144,0){[weak self] in self?.perform("recall")}
+  button("分享这位朋友",154,137,176,0){[weak self] in self?.perform("share")}
+  title("给大家留个位置",220,0)
+  button("开关安全窝",0,264,172,0){[weak self] in self?.perform("safe")};button("安排共居",182,264,172,0){[weak self] in self?.perform("coexist")};button("接朋友入住…",364,264,184,0){[weak self] in self?.importFriend()}
+  title("交给它，替你收着。",0,1)
+  input.frame=NSRect(x:0,y:42,width:572,height:32);input.placeholderString="写一条待办，或粘贴一个链接";panes[1].addSubview(input)
+  button("收好",0,88,112,1){[weak self] in self?.perform("stash")}
+  notes.frame=NSRect(x:0,y:151,width:572,height:30);panes[1].addSubview(notes)
+  button("取回",0,198,120,1){[weak self] in self?.perform("return")};button("完成 / 撤销",130,198,160,1){[weak self] in self?.perform("done")};button("删除",300,198,110,1){[weak self] in self?.perform("delete")}
+  title("取回只会复制，纸条仍留在这里。",268,1)
+  title("一起安静一会儿。",26,2)
+  minutes.frame=NSRect(x:0,y:88,width:80,height:34);panes[2].addSubview(minutes);title("分钟",94,2)
+  // Put the unit beside the field, not over it.
+  panes[2].subviews.last?.frame.origin.x=96
+  button("开始专注",0,151,180,2){[weak self] in self?.perform("focus")};button("结束计时",192,151,160,2){[weak self] in self?.perform("cancel")}
+  focusStatus.frame=NSRect(x:0,y:223,width:560,height:55);focusStatus.font = .systemFont(ofSize:16);panes[2].addSubview(focusStatus)
+  let scroll=NSScrollView(frame:NSRect(x:0,y:0,width:572,height:330));scroll.hasVerticalScroller=true;scroll.documentView=cards;cards.frame=NSRect(x:0,y:0,width:550,height:970);cards.setAccessibilityElement(true);cards.setAccessibilityLabel("成就卡册");panes[3].addSubview(scroll)
+  feedback.frame=NSRect(x:24,y:418,width:572,height:24);feedback.font = .systemFont(ofSize:11);feedback.textColor=moss;v.addSubview(feedback)
+  w.center();tabChanged();refresh()
  }
+ @objc func tabChanged(){for (i,p) in panes.enumerated(){p.isHidden=i != tabs.selectedSegment}}
+ @objc func guestChanged(){refreshPortrait()}
+ func refreshPortrait(){guard let e=engine,ids.indices.contains(guests.indexOfSelectedItem) else{portrait.kind = .adult;return};portrait.kind=e.state.residents.first{$0.id==ids[guests.indexOfSelectedItem]}?.kind ?? .adult}
+ func importFriend(){let alert=NSAlert();alert.messageText="接朋友入住";alert.informativeText="粘贴朋友发来的领养码。";let field=NSTextField(frame:NSRect(x:0,y:0,width:330,height:30));alert.accessoryView=field;alert.addButton(withTitle:"接它回家");alert.addButton(withTitle:"取消");alert.window.initialFirstResponder=field;if alert.runModal() == .alertFirstButtonReturn {engine?.lifeAction("adopt",id:nil,text:field.stringValue,note:nil);refresh()}}
  required init?(coder:NSCoder){fatalError()}
  func refresh(){guard let e=engine else{return};e.state.ensureLife();let life=e.state.life!;let selected=guests.indexOfSelectedItem;let old=ids.indices.contains(selected) ? ids[selected] : nil
   ids=e.state.residents.filter{$0.live && (life.bonds[$0.id.uuidString.lowercased()] != nil || e.visits[$0.id]?.hidden == false)}.map{$0.id}
-  guests.removeAllItems();for id in ids {let r=e.state.residents.first{$0.id==id}!;let b=life.bonds[id.uuidString.lowercased()];guests.addItem(withTitle:"\(b?.name.isEmpty == false ? b!.name : r.kind == .mouse ? "小老鼠" : r.kind == .catPaw ? "猫咪" : "旮杂") · \(id.uuidString.prefix(4)) · 信任 \(b?.trust ?? 0) / 警惕 \(b?.fear ?? 0) · \(b?.protected == true ? "受保护" : "访客")")};if let old=old,let i=ids.firstIndex(of:old){guests.selectItem(at:i)}
+  guests.removeAllItems();for id in ids {let r=e.state.residents.first{$0.id==id}!;let b=life.bonds[id.uuidString.lowercased()];guests.addItem(withTitle:"\(b?.name.isEmpty == false ? b!.name : r.kind == .mouse ? "小老鼠" : r.kind == .catPaw ? "猫咪" : "旮杂") · ♡ \(b?.trust ?? 0) \(b?.partner == true ? "· 我的伙伴" : "")")};if let old=old,let i=ids.firstIndex(of:old){guests.selectItem(at:i)}
   if ids.isEmpty {guests.addItem(withTitle:"尚未遇见住客 · 回主面板撒点面包屑，或等待来访")}
   let oldNote=notes.indexOfSelectedItem;noteIDs=life.notes.map{$0.id};notes.removeAllItems();for n in life.notes {notes.addItem(withTitle:(n.done ? "✓ " : "○ ")+String(n.text.prefix(45)).replacingOccurrences(of:"\n",with:" "))};if oldNote>=0 && oldNote<noteIDs.count{notes.selectItem(at:oldNote)}
   if noteIDs.isEmpty {notes.addItem(withTitle:"暂无纸条 · 输入内容后点收好")}
+  feedback.stringValue=e.message
+  refreshPortrait();focusStatus.stringValue=life.focusRemaining>0 ? "还剩 \(Int(ceil(life.focusRemaining/60))) 分钟 · 大家都在休息" : "计时期间，不会有小动物突然跑出来。"
   cards.life=life;cards.message=e.message;cards.needsDisplay=true
   report.string="\(e.message)\n\n脚印：\(life.traceReady ? "发现了碎屑，点探索追踪" : "等待住客留下痕迹")  · 安全窝：\(life.safeLeft ? "开启" : "关闭")  · 专注剩余：\(Int(life.focusRemaining)) 秒\n\n"+Life.achievements.map{key,name in life.cards[key].map{"✓ \(name) · "+Date(timeIntervalSince1970:$0).formatted(date:.abbreviated,time:.shortened)} ?? "○ \(name)"}.joined(separator:"\n")
   cards.setAccessibilityValue(report.string)
@@ -69,7 +88,7 @@ extension Paradise {
   visits[id]=Visit(hidden:false,exiting:false,deadline:now+8,target:CGPoint(x:state.residents[i].x+80,y:state.residents[i].y),screen:f)
   let observed=state.residents[i];state.life?.observe(observed,now);syncPanels()
  }
- func lifeAction(_ action:String,id:UUID?,text:String,note:String?,minutes:Double=25){
+ func lifeAction(_ action:String,id:UUID?,text:String,note:String?,minutes:Double=25,inPlace:Bool=false){
   state.ensureLife();let now=Date().timeIntervalSince1970
   let administrative=["stash","return","done","delete","share","cancel"]
   if (paused || state.focusing) && !administrative.contains(action) {tell("先结束专注或继续桌宠，再进行动物互动");return}
@@ -119,7 +138,7 @@ extension Paradise {
    } else if action=="gold" {
     guard r.kind == .gold,(state.life!.bonds[id.uuidString.lowercased()]?.trust ?? 0)>=2 else{tell("黄金旮杂信任达到 2 后，会留下一次卵壳");return}
     let amount=state.life!.gold(id,now);state.progression!.shells+=amount;result=amount>0 ? "它留给你 2 枚黄金卵壳，仍可以继续做朋友" : "这位住客的卵壳已收获过啦"
-   } else {summon(id,now);result=action=="recall" ? "它听见你了，出来见一面" : state.life!.interact(r,action:action,text:text,now:now)}
+   } else {if !inPlace {summon(id,now)};result=action=="recall" ? "它听见你了，出来见一面" : state.life!.interact(r,action:action,text:text,now:now)}
   }
   tell(result);syncPanels();save();rebuildMenu()
  }

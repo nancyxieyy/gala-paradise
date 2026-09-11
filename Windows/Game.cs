@@ -18,6 +18,8 @@ public class Resident {
     public Kind Kind {get;set;}
     public float X {get;set;}
     public float Y {get;set;}
+    [JsonIgnore] public double HoldUntil{get;set;}
+    [JsonIgnore] public double ReactionUntil{get;set;}
     [JsonIgnore] public double CarryUntil{get;set;}
     public double Born {get;set;}
     [JsonIgnore] public Rectangle? EntryFrame{get;set;}
@@ -96,6 +98,7 @@ public partial class Game {
             if(r.Hidden)continue;
             if(!r.Friend&&!State.Life.Protects(r.Id)&&now<State.Life.GuardUntil&&r.X>=r.Screen.Left+r.Screen.Width/2){r.Hidden=true;continue;}
             if(r.Screen.IntersectsWith(new System.Drawing.Rectangle((int)r.X,(int)r.Y,Rules.Canvas(r.Kind),Rules.Canvas(r.Kind))))State.Life.Observe(r,now);
+            if(now<r.HoldUntil){r.ExitAt+=dt;if(r.Kind==Kind.CatPaw)r.Born+=dt;continue;}
             if(r.Kind==Kind.CatPaw){if(now-r.Born>=6)r.Hidden=true;continue;}
             if(!r.Exiting&&now>=r.ExitAt){r.Exiting=true;var f=r.Screen;PointF[] exits=[new(f.Left-Rules.Canvas(r.Kind),r.Y),new(f.Right,r.Y),new(r.X,f.Top-Rules.Canvas(r.Kind)),new(r.X,f.Bottom)];var p=exits.MinBy(p=>MathF.Abs(p.X-r.X)+MathF.Abs(p.Y-r.Y));r.TargetX=p.X;r.TargetY=p.Y;}
             float dx=r.TargetX-r.X,dy=r.TargetY-r.Y,d=MathF.Sqrt(dx*dx+dy*dy);r.Direction=dx>=0?1:-1;
@@ -125,9 +128,7 @@ public partial class Game {
     public void TogglePause(double now){Paused=!Paused;if(Paused)pauseStart=now;else{var d=now-pauseStart;foreach(var r in State.Residents){r.Born+=d;r.ExitAt+=d;r.FlyingUntil+=d;r.TauntUntil+=d;}NextAppearance+=d;nextGold+=d;nextMouse+=d;nextCat+=d;lastEgg+=d;if(emptySince>0)emptySince+=d;}Message=Paused?"全体暂停，可以安心办公":"住客们回来啦";}
     public void Use(Guid id,double now,double? flightRoll=null){
         var r=State.Residents.Find(r=>r.Id==id);if(r==null||Paused||State.Life.FocusRemaining>0)return;var t=State.Tool;if(!Owns(t))return;
-        if(r.Live&&State.Life.SafeLeft&&r.X<r.Screen.Left+r.Screen.Width/2){Message="这里是安全窝，住客不会受到伤害";return;}
-        if(State.Life.Protects(r.Id)){Message="这是受保护的住客，请在住客手册里与它互动";return;}
-        if(r.Friend){Message=r.Kind==Kind.Mouse?"吱～新朋友只是路过":"猫爪轻轻碰了碰你 ♡";return;}
+        if(r.Friend||State.Life.Protects(r.Id)||(r.Live&&State.Life.SafeLeft&&r.X<r.Screen.Left+r.Screen.Width/2)){Message=PlayfulUse(r,t,now);return;}
         if(r.Live){
             if(t==Tool.Cleaner){Message="清洁剂只擦污渍，旮杂笑你了";return;}
             
@@ -139,6 +140,11 @@ public partial class Game {
             if(golden)Message="获得 2 枚黄金卵壳 ✦ 点击锁定工具可兑换";
         }else if((r.Kind==Kind.Stain&&t==Tool.Cleaner)||((r.Kind is Kind.Egg or Kind.Corpse)&&t==Tool.Vacuum)){State.Residents.Remove(r);State.Xp+=2;State.Cleaned++;Message="清理完了……角落里呢？";}
         else Message=r.Kind==Kind.Stain?"这是顽固污渍，要用清洁剂":"用吸尘器收走吧";
+    }
+    public string PlayfulUse(Resident r,Tool tool,double now){
+        r.HoldUntil=now+1.5;r.ReactionUntil=now+.55;if(r.Kind==Kind.CatPaw)r.Born=now-2;
+        if(tool==Tool.Pinch)State.Life.Interact(r,"pet","",now);
+        return tool switch{Tool.Pinch=>r.Kind==Kind.CatPaw?"呼噜～再摸一下 ♡":"蹭蹭你的手 ♡",Tool.Slipper=>r.Kind==Kind.CatPaw?"啪！猫爪接住了拖鞋":"嗖！侧身躲开，还回头看你",Tool.Poison=>"阿嚏！抖掉泡沫，瞪你一眼",Tool.Vacuum=>r.Kind==Kind.CatPaw?"爪子按住吸嘴：不许吸！":"呼——毛都吹乱啦！",_=>"擦擦脸，亮晶晶 ✦"};
     }
     public string Serialize()=>JsonSerializer.Serialize(State,new JsonSerializerOptions{WriteIndented=true});
     public void Restore(string json){State=JsonSerializer.Deserialize<SaveState>(json)??throw new InvalidDataException("空存档");if(!JsonDocument.Parse(json).RootElement.TryGetProperty("Progression",out _))State.Progression.Owned=Enum.GetValues<Tool>().Where(t=>State.Xp>=Rules.Unlock[(int)t]).ToList();State.Habitat.Rate=new[]{.25,1.0,3.0}.Contains(State.Habitat.Rate)?State.Habitat.Rate:1;State.Life.FocusRemaining=0;State.Residents=State.Residents.Take(38).Where(r=>float.IsFinite(r.X)&&float.IsFinite(r.Y)).ToList();if(!Enum.IsDefined(State.Tool)||!Owns(State.Tool))State.Tool=Tool.Pinch;foreach(var r in State.Residents)r.Hidden=r.Live;}

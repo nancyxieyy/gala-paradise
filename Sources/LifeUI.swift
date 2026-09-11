@@ -64,7 +64,7 @@ final class LifeController:NSWindowController {
  required init?(coder:NSCoder){fatalError()}
  func refresh(){guard let e=engine else{return};e.state.ensureLife();let life=e.state.life!;let selected=guests.indexOfSelectedItem;let old=ids.indices.contains(selected) ? ids[selected] : nil
   ids=e.state.residents.filter{$0.live && (life.bonds[$0.id.uuidString.lowercased()] != nil || e.visits[$0.id]?.hidden == false)}.map{$0.id}
-  guests.removeAllItems();for id in ids {let r=e.state.residents.first{$0.id==id}!;let b=life.bonds[id.uuidString.lowercased()];guests.addItem(withTitle:"\(b?.name.isEmpty == false ? b!.name : r.kind == .mouse ? "小老鼠" : r.kind == .catPaw ? "猫咪" : "旮杂") · ♡ \(b?.trust ?? 0) \(b?.partner == true ? "· 我的伙伴" : "")")};if let old=old,let i=ids.firstIndex(of:old){guests.selectItem(at:i)}
+  guests.removeAllItems();for id in ids {let r=e.state.residents.first{$0.id==id}!;let b=life.bonds[id.uuidString.lowercased()];guests.addItem(withTitle:"\(b?.name.isEmpty == false ? b!.name : r.kind == .mouse ? "小老鼠" : r.kind == .catPaw ? "猫咪" : "旮杂") \(b?.partner == true ? "· 我的伙伴" : "")")};if let old=old,let i=ids.firstIndex(of:old){guests.selectItem(at:i)}
   if ids.isEmpty {guests.addItem(withTitle:"尚未遇见住客 · 回主面板撒点面包屑，或等待来访")}
   let oldNote=notes.indexOfSelectedItem;noteIDs=life.notes.map{$0.id};notes.removeAllItems();for n in life.notes {notes.addItem(withTitle:(n.done ? "✓ " : "○ ")+String(n.text.prefix(45)).replacingOccurrences(of:"\n",with:" "))};if oldNote>=0 && oldNote<noteIDs.count{notes.selectItem(at:oldNote)}
   if noteIDs.isEmpty {notes.addItem(withTitle:"暂无纸条 · 输入内容后点收好")}
@@ -106,13 +106,15 @@ extension Paradise {
   case "focus":
    state.life!.focusRemaining=max(1,min(120,minutes.isFinite ? minutes : 25))*60
    for r in state.residents where r.live {visits[r.id]=Visit()};result="专注开始，大家回窝了；关闭程序不会自动完成计时"
-  case "cancel":state.life!.focusRemaining=0;nextAppearance=now+20;nextGold=now+30;nextMouse=now+60;nextCat=now+90;result="计时已结束，不扣好感"
+  case "cancel":state.life!.focusRemaining=0;nextAppearance=now+20;result="计时已结束，不扣好感"
   case "safe":state.life!.safeLeft.toggle();result="左半屏安全窝已"+(state.life!.safeLeft ? "开启" : "关闭")
   case "explore":
-   guard state.life!.traceReady else{tell("还没有新脚印，稍后再来看看");return}
-   guard state.residents.count<maxResidents else{tell("住客已满，脚印会保留");return}
+   state.ensureWorld()
+   guard let h=state.world!.habitats.firstIndex(where:{$0.nest && $0.exposed && !$0.discovered}) else{tell("这里还没有新的痕迹");return}
+   let location=state.world!.habitats[h].id;state.world!.habitats[h].discovered=true
    state.life!.traceReady=false;state.life!.award("trace.first",now);state.life!.award("nest.first",now)
-   spawn(.gold,at:NSScreen.main.map{NSPoint(x:$0.frame.midX,y:$0.frame.midY)});result="顺着金色碎屑找到一处小窝，试着与住客交朋友"
+   for c in state.world!.creatures.filter({$0.location==location && $0.roach}).prefix(2) {if let id=UUID(uuidString:c.id){summon(id,now)}}
+   result="缝隙里有一处住过的窝。"
   case "coexist":
    let partners=state.life!.bonds.filter{$0.value.partner};let species=Set(partners.values.map{$0.kind=="mouse" ? "mouse" : $0.kind=="catPaw" ? "cat" : "roach"})
    guard species.count>=2 else{tell("先认识至少两种伙伴，再安排大家共居");return}
@@ -136,10 +138,12 @@ extension Paradise {
     if !targets.isEmpty {state.life!.award(r.kind == .mouse ? "patrol.first" : "guard.first",now)}
     result="右半屏值班 60 秒 · 驱赶 \(targets.count) 只；不伤害伙伴、不产生击杀奖励"
    } else if action=="gold" {
-    guard r.kind == .gold,(state.life!.bonds[id.uuidString.lowercased()]?.trust ?? 0)>=2 else{tell("黄金旮杂信任达到 2 后，会留下一次卵壳");return}
+    guard r.kind == .gold,(state.life!.bonds[id.uuidString.lowercased()]?.trust ?? 0)>=2 else{tell("它还护着卵壳，再和它熟悉一点吧");return}
     let amount=state.life!.gold(id,now);state.progression!.shells+=amount;result=amount>0 ? "它留给你 2 枚黄金卵壳，仍可以继续做朋友" : "这位住客的卵壳已收获过啦"
    } else {if !inPlace {summon(id,now)};result=action=="recall" ? "它听见你了，出来见一面" : state.life!.interact(r,action:action,text:text,now:now)}
   }
+  if let id=id,["pet","feed"].contains(action) {state.worldSignal("friendly",id:id);if action=="feed" {state.worldSignal("food",id:id)}}
+  state.reconcileWorld()
   tell(result);syncPanels();save();rebuildMenu()
  }
 }
@@ -147,7 +151,7 @@ extension Paradise {
  func syncTrace(){
   guard !isTestRun else{return}
   if state.life?.traceReady==true && !paused && !state.quiet && !state.focusing,let f=NSScreen.main?.visibleFrame {
-   if tracePanel==nil {let p=PetPanel(contentRect:NSRect(x:f.maxX-145,y:f.minY+40,width:115,height:34),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false);p.isOpaque=false;p.backgroundColor = .clear;p.level = .floating;p.hasShadow=false;p.isReleasedWhenClosed=false;p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary];p.contentView=ActionButton("👣 金色碎屑",frame:NSRect(x:0,y:0,width:115,height:34)){[weak self] in self?.lifeAction("explore",id:nil,text:"",note:nil);self?.showLife()};tracePanel=p}
+   if tracePanel==nil {let p=PetPanel(contentRect:NSRect(x:f.maxX-145,y:f.minY+40,width:115,height:34),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false);p.isOpaque=false;p.backgroundColor = .clear;p.level = .floating;p.hasShadow=false;p.isReleasedWhenClosed=false;p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary];p.contentView=ActionButton("👣 细小碎屑",frame:NSRect(x:0,y:0,width:115,height:34)){[weak self] in self?.lifeAction("explore",id:nil,text:"",note:nil);self?.showLife()};tracePanel=p}
    tracePanel?.setFrameOrigin(NSPoint(x:f.maxX-145,y:f.minY+40));tracePanel?.orderFrontRegardless()
   } else {tracePanel?.orderOut(nil)}
  }

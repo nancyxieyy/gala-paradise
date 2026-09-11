@@ -21,7 +21,7 @@ extension Paradise {
   let r=state.residents[i];guard r.live else{interact(id);return}
   state.residents[i].holdUntil=Date().timeIntervalSince1970+30
   let menu=NSMenu();let b=state.life?.bonds[id.uuidString.lowercased()]
-  menu.addItem(withTitle:(b?.name.isEmpty == false ? b!.name : r.kind == .mouse ? "小老鼠" : r.kind == .catPaw ? "猫咪" : "小旮杂")+" · 信任 \(b?.trust ?? 0)/6",action:nil,keyEquivalent:"")
+  menu.addItem(withTitle:(b?.name.isEmpty == false ? b!.name : r.kind == .mouse ? "小老鼠" : r.kind == .catPaw ? "猫咪" : "小旮杂")+"",action:nil,keyEquivalent:"")
   func add(_ title:String,_ action:String){let item=NSMenuItem(title:title,action:#selector(animalChoice(_:)),keyEquivalent:"");item.target=self;item.representedObject=[id.uuidString,action];menu.addItem(item)}
   add("♡ 摸一摸","pet");add("喂一口","feed");add("起个名字…","name");add(b?.partner == true ? "已经是我的伙伴 ♡" : "成为我的伙伴","bond")
   if r.kind == .gold {add("收下黄金卵壳","gold")}

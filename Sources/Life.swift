@@ -52,7 +52,7 @@ struct Life:Codable {
             let name=String(text.trimmingCharacters(in:.whitespacesAndNewlines).prefix(24));guard !name.isEmpty else{return "先输入名字（最多 24 字）"}
             b.name=name;if !r.friend {award("name.roach",now)}
         case "bond":
-            guard b.trust>=6 else{return "还在认识你：信任需达到 6；抚摸和投喂每 20 秒生效一次"}
+            guard b.trust>=6 else{return "它还在试着认识你，再相处一阵吧"}
             guard !b.partner else{return "已经是伙伴啦"}
             guard bonds.values.filter({$0.partner}).count<6 else{return "伙伴位已满（6 位），现有伙伴会继续受到保护"}
             b.partner=true;award(r.kind == .mouse ? "bond.mouse" : r.kind == .catPaw ? "bond.cat" : "bond.roach",now)
@@ -64,10 +64,10 @@ struct Life:Codable {
             if action=="pet" && r.kind == .catPaw {award("touch.cat",now)}
         }
         bonds[key]=b
-        return action=="bond" ? "伙伴入住！它会记得你，也会受到保护" : action=="name" ? "名字已记住，住客保护已开启" : "互动完成 · 信任 \(b.trust)/6"
+        return action=="bond" ? "伙伴入住！它会记得你，也会受到保护" : action=="name" ? "名字已记住，住客保护已开启" : "它认得你的手了 ♡"
     }
     mutating func stash(_ text:String,_ now:Double)->String {
-        guard bonds.values.contains(where:{$0.trust>=2 || $0.adopted}) else{return "先与任意住客互动，信任达到 2 后可托管纸条"}
+        guard bonds.values.contains(where:{$0.trust>=2 || $0.adopted}) else{return "先和一位住客熟悉起来，它就愿意替你收着"}
         let value=text.trimmingCharacters(in:.whitespacesAndNewlines)
         guard !value.isEmpty && value.count<=4000 && notes.count<100 else{return "输入 1–4000 字，收纳上限 100 条"}
         notes.append(NoteItem(text:value));award("stash.first",now);return "纸条已收进窝里；随时可从清单取回"
@@ -89,7 +89,7 @@ struct Life:Codable {
     }
     mutating func tick(_ dt:Double,_ now:Double)->Bool {
         if focusRemaining>0 {focusRemaining=max(0,focusRemaining-min(max(dt,0),1));if focusRemaining==0 {award("focus.first",now);return true};return false}
-        traceClock+=min(max(dt,0),1);if traceClock>=60 {traceReady=true;traceClock=0};return false
+        return false
     }
 }
 extension GameState {

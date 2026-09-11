@@ -5,7 +5,7 @@ enum Tool: String, Codable, CaseIterable {
     var title: String { switch self { case .pinch: return "捏一下"; case .slipper: return "人字拖"; case .poison: return "蟑螂药"; case .vacuum: return "吸尘器"; case .cleaner: return "清洁剂" } }
     var glyph: String { switch self { case .pinch: return "hand.point.up.left.fill"; case .slipper: return "shoe.fill"; case .poison: return "cross.vial.fill"; case .vacuum: return "wind"; case .cleaner: return "sparkles" } }
     var threshold: Int { switch self { case .pinch: return 0; case .slipper: return 5; case .poison: return 12; case .vacuum: return 20; case .cleaner: return 28 } }
-    var detail: String { switch self { case .pinch: return "一捏爆浆，留下奶油污渍"; case .slipper: return "啪！留下翻肚皮的小家伙"; case .poison: return "放药后，开文件夹都是躺平的"; case .vacuum: return "吸走小旮杂、尸体和角落的卵"; case .cleaner: return "擦掉爆浆，桌面终于干净了？" } }
+    var detail: String { switch self { case .pinch: return "一捏爆浆，留下奶油污渍"; case .slipper: return "啪！留下翻肚皮的小家伙"; case .poison: return "留下药剂，影响经过的旮杂"; case .vacuum: return "吸走小旮杂、尸体和角落的卵"; case .cleaner: return "擦掉爆浆，桌面终于干净了？" } }
 }
 enum BugKind: String, Codable { case adult, baby, egg, corpse, stain, gold, mouse, catPaw }
 struct Resident: Codable, Identifiable {
@@ -17,6 +17,7 @@ struct Resident: Codable, Identifiable {
     var vx: Double = 0
     var vy: Double = 0
     var flyingUntil: Double = 0
+    var ecologyIntent:String?
     var holdUntil:Double?
     var reactionUntil:Double?
     var carryUntil:Double?
@@ -25,6 +26,7 @@ struct Resident: Codable, Identifiable {
     var live: Bool { kind == .adult || kind == .baby || kind == .gold || friend }
 }
 struct GameState: Codable {
+    var world:World?
     var life:Life?=Life()
     var progression:Progression?=Progression()
     var version = 1
@@ -46,6 +48,9 @@ struct GameState: Codable {
         guard let i = residents.firstIndex(where: { $0.id == id }) else { return "" }
         ensureLife()
         let kind = residents[i].kind
+        defer { reconcileWorld() }
+        if tool == .poison && residents[i].live && !residents[i].friend && !protected(residents[i]) {worldSignal("threat",id:id);worldSignal("chemical",id:id);return "呲——泡沫留下了，看看它往哪儿躲"}
+        if residents[i].live {worldSignal(tool == .pinch && (residents[i].friend || protected(residents[i])) ? "friendly" : "threat",id:id)}
         if protected(residents[i]) || residents[i].friend {return playfulUse(tool,on:id,now:now)}
         if residents[i].live {
             if tool == .cleaner { return "清洁剂只擦污渍，旮杂笑你了" }
@@ -110,7 +115,7 @@ func runModelTests() {
     precondition(g.residents[0].kind == .stain)
     g.residents=[live]
     _ = g.use(.poison,on:live.id,now:20,flightRoll:0)
-    precondition(g.residents[0].kind == .corpse)
+    precondition(g.residents[0].kind == .adult && g.world!.signals.contains{$0.kind=="chemical"})
     g.residents=[live]
     _ = g.use(.cleaner,on:live.id,now:20,flightRoll:1)
     precondition(g.residents[0].kind == .adult)

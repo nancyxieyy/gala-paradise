@@ -1,0 +1,56 @@
+{
+  "seed": 42,
+  "duration": 86400,
+  "habitats": [
+    {
+      "id": "Downloads",
+      "food": 0.7,
+      "nestability": 0.8
+    },
+    {
+      "id": "Archive",
+      "food": 0.7,
+      "nestability": 0.95
+    },
+    {
+      "id": "edge",
+      "food": 0.2,
+      "nestability": 0.5
+    }
+  ],
+  "actions": [
+    {
+      "at": 0,
+      "every": 600,
+      "kind": "food",
+      "location": "Archive"
+    },
+    {
+      "at": 60,
+      "every": 30,
+      "kind": "visit",
+      "location": "Downloads"
+    }
+  ],
+  "name": "G-one-day",
+  "creatures": [
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    }
+  ]
+}

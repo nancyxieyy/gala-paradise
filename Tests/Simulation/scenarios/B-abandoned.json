@@ -1,0 +1,43 @@
+{
+  "seed": 42,
+  "duration": 1800,
+  "habitats": [
+    {
+      "id": "Downloads",
+      "food": 0.7,
+      "nestability": 0.8
+    },
+    {
+      "id": "Archive",
+      "food": 0.7,
+      "nestability": 0.95
+    },
+    {
+      "id": "edge",
+      "food": 0.2,
+      "nestability": 0.5
+    }
+  ],
+  "actions": [],
+  "name": "B-abandoned",
+  "creatures": [
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "seed": 42,
+  "duration": 7200,
+  "habitats": [
+    {
+      "id": "Downloads",
+      "food": 0.7,
+      "nestability": 0.8
+    },
+    {
+      "id": "Archive",
+      "food": 0.7,
+      "nestability": 0.95
+    },
+    {
+      "id": "edge",
+      "food": 0.2,
+      "nestability": 0.5
+    }
+  ],
+  "actions": [
+    {
+      "at": 0,
+      "every": 120,
+      "kind": "food",
+      "location": "Archive"
+    },
+    {
+      "at": 900,
+      "every": 900,
+      "kind": "chemical",
+      "location": "Archive"
+    }
+  ],
+  "name": "F-two-hours",
+  "creatures": [
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    },
+    {
+      "location": "Archive"
+    }
+  ]
+}

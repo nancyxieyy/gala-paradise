@@ -26,7 +26,7 @@ for seed in report['config']['seeds']:
    prior_move=next((x for x in es if x['trigger']=='migration' and x['previous']=='Downloads' and x['new']=='Archive' and 10<x['timestamp']<(prior_nest or {}).get('timestamp',0)),None)
    later_nest=next((x for x in es if x['trigger']=='formation' and x['location']=='Downloads' and x['timestamp']>e['timestamp']),None)
    if prior_move and prior_nest and later_nest:matched=[prior_move,prior_nest,hatch,e,later_nest];break
-  
+
  chains.append(dict(seed=seed,complete=bool(matched),events=matched))
 guards['CCompleteChainSeeds']=sum(x['complete'] for x in chains)
 guards['pass']=guards['F-two-hours']['pass'] and guards['C-chemical']['pass'] and guards['HShock'] and guards['CCompleteChainSeeds']>=1

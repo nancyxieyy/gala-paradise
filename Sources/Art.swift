@@ -23,7 +23,7 @@ func label(_ text: String, _ x: CGFloat, _ y: CGFloat, size: CGFloat = 14, weigh
 }
 // Original vector character: bean body, oversized googly eyes, loose antennae.
 // Coordinates are in a flipped 140 × 140 space.
-func drawBug(in box: NSRect, kind: BugKind = .adult, phase: Double = 0, flying: Bool = false, facing: Double = 1) {
+func drawBug(in box: NSRect, kind: BugKind = .adult, phase: Double = 0, flying: Bool = false, facing: Double = 1, eggProgress:Double=0, emptyShell:Bool=false) {
     if kind == .mouse || kind == .catPaw {drawFriend(in:box,cat:kind == .catPaw,phase:phase,facing:facing);return}
     NSGraphicsContext.saveGraphicsState()
     let t = AffineTransform(translationByX: box.minX, byY: box.minY); (t as NSAffineTransform).concat()
@@ -37,9 +37,13 @@ func drawBug(in box: NSRect, kind: BugKind = .adult, phase: Double = 0, flying: 
         oval(NSRect(x: 42, y: 65, width: 15, height: 7), color(0xFFF1B9))
         oval(NSRect(x: 15, y: 58, width: 8, height: 6), color(0xDAB867)); oval(NSRect(x: 113, y: 99, width: 5, height: 5), color(0xDAB867))
     } else if kind == .egg {
+        let progress=min(1,max(0,eggProgress))
         for n in 0..<3 {
-            oval(NSRect(x: 29+CGFloat(n)*23, y: 70-CGFloat(n%2)*8, width: 29, height: 37), color(0xD9B78C), stroke: color(0x8C6948), width: 2.5)
-            for k in 0..<3 { line([NSPoint(x: 36+CGFloat(n)*23, y: 79+CGFloat(k)*7-CGFloat(n%2)*8), NSPoint(x: 50+CGFloat(n)*23,y: 79+CGFloat(k)*7-CGFloat(n%2)*8)],color(0xAE8963),1.5) }
+            let x=29+Double(n)*23,y=70-Double(n%2)*8
+            oval(NSRect(x:x,y:y+(emptyShell ? 18 : 0),width:29+progress*3,height:emptyShell ? 15 : 37+progress*3),color(0xD9B78C,emptyShell ? 0.55 : 1),stroke:color(0x8C6948,emptyShell ? 0.55 : 1),width:2.5)
+            if progress<0.65 {for k in 0..<3 {line([NSPoint(x:x+7,y:y+9+Double(k)*7),NSPoint(x:x+21,y:y+9+Double(k)*7)],color(0xAE8963),1.5)}}
+            else if emptyShell {line([NSPoint(x:x+3,y:y+22),NSPoint(x:x+8,y:y+18),NSPoint(x:x+14,y:y+23),NSPoint(x:x+21,y:y+18),NSPoint(x:x+27,y:y+22)],color(0x8C6948,0.55),2)}
+            else {line([NSPoint(x:x+15,y:y+3),NSPoint(x:x+9,y:y+13),NSPoint(x:x+19,y:y+21),NSPoint(x:x+12,y:y+32)],color(0x8C6948,emptyShell ? 0.4 : 1),2)}
         }
     } else {
         let dead = kind == .corpse

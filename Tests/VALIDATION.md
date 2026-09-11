@@ -68,3 +68,11 @@
 实际执行 Swift 模型、Mac 原生集成、.NET CoreTests、跨语言全量状态／事件／样本比较、重复种子、跨语言保存续跑、Mac Universal 与 Windows x64 发布构建。Mac 原生组件验证左右键动作原地响应、保护、暂停、专注与菜单；Windows 原生 GUI 未在本机运行。
 
 模型测量与 30 秒原生空闲／活跃资源测量、失败的零住客假设、耐受个体与过度迁移问题，详见 [实验报告](../Docs/emergent-world-v0-results.md)。证据快照见 [evidence.json](../Docs/emergent-world-v0-evidence.json)。不将规则组合候选宣称为已经通过玩家体验验证的故事。
+
+## 1.7.1 Readable Emergence
+
+固定五种子、单候选的滞回实验：F 主指标通过（汇总往返率下降 60.3%，4/5 种子改善），H 没有产生往返，因此总体稳定性记 PARTIAL。生态守护条件通过，C 的严格复占链在五种子均存在；A–I 全量跨语言状态、事件、样本、PRNG 及续跑一致。
+
+Swift / C# 新增承诺、强刺激打断、往返窗口、旧字段缺失、隔离日志隐私与投影模型检查；既有玩法测试通过。Mac 原生组件验收残留、离开/隐藏路程/延后到达、卵同源孵化、空壳、暂停、专注、左右键与菜单。Universal 及 Windows 自包含包已构建；Windows native GUI not validated.
+
+没有真人体验数据。状态 READY_FOR_HUMAN_VALIDATION。完整命令、实验表、资源测量、失败记录与局限见 [1.7.1 结果](../Docs/readable-emergence-v1.7.1-results.md)。

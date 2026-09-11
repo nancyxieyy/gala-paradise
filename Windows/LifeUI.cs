@@ -23,7 +23,9 @@ sealed class LifeWindow:Form {
 sealed class TraceWindow:Form {
  protected override bool ShowWithoutActivation=>true;
  protected override CreateParams CreateParams{get{var p=base.CreateParams;p.ExStyle|=0x80|0x08000000;return p;}}
- public TraceWindow(Paradise host){FormBorderStyle=FormBorderStyle.None;ShowInTaskbar=false;TopMost=true;ClientSize=new(115,34);BackColor=Art.Cream;var b=new Button{Text="👣 细小碎屑",Dock=DockStyle.Fill,FlatStyle=FlatStyle.Flat,BackColor=Art.Cream};Controls.Add(b);b.Click+=(s,e)=>{host.Action(()=>host.Game.LifeAction("explore",null,"",null));host.ShowLife();};}
+ public TraceWindow(Paradise host){FormBorderStyle=FormBorderStyle.None;ShowInTaskbar=false;TopMost=true;ClientSize=new(44,24);BackColor=Color.Magenta;TransparencyKey=Color.Magenta;Click+=(s,e)=>host.Action(()=>host.Game.LifeAction("explore",null,"",null));}
+ protected override void OnPaint(PaintEventArgs e){base.OnPaint(e);for(int n=0;n<5;n++)Art.Oval(e.Graphics,Color.FromArgb(167,129,76),5+n*7,5+n%3*3,4,3);}
+
 }
 sealed class AchievementPanel:ScrollableControl {
  public Life Life=new();public string Message="";

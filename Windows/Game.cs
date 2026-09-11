@@ -18,6 +18,7 @@ public class Resident {
     public Kind Kind {get;set;}
     public float X {get;set;}
     public float Y {get;set;}
+    [JsonIgnore] public double EggProgress{get;set;}
     [JsonIgnore] public string EcologyIntent{get;set;}="idle";
     [JsonIgnore] public double HoldUntil{get;set;}
     [JsonIgnore] public double ReactionUntil{get;set;}
@@ -54,6 +55,7 @@ public class SaveState {
     public List<Resident> Residents {get;set;}=[];
 }
 public partial class Game {
+    public BlindSession? Blind;
     public SaveState State=new();
     public Rectangle[] Screens=[new(0,0,1440,900)];
     public bool Paused;
@@ -66,7 +68,7 @@ public partial class Game {
     public Game(double now,int? seed=null){rng=seed.HasValue?new Random(seed.Value):new Random();NextAppearance=now+8;}
     double Range(double a,double b)=>a+rng.NextDouble()*(b-a);
     public bool Owns(Tool t)=>State.Progression.Owned.Contains(t);
-    public void Select(Tool t){if(!Owns(t)){int cost=Rules.Cost[(int)t];if(State.Progression.Shells<cost){Message=$"需要 {cost} 枚黄金卵壳，捕捉金色旮杂获得";return;}State.Progression.Shells-=cost;State.Progression.Owned.Add(t);}State.Tool=t;if(t==Tool.Poison)State.Poisoned=true;Message=$"已拿起{Rules.Names[(int)t]}，点击桌面上的目标";}
+    public void Select(Tool t){Blind?.Action("select");Blind?.Action(t.ToString().ToLowerInvariant());if(!Owns(t)){int cost=Rules.Cost[(int)t];if(State.Progression.Shells<cost){Message=$"需要 {cost} 枚黄金卵壳，捕捉金色旮杂获得";return;}State.Progression.Shells-=cost;State.Progression.Owned.Add(t);}State.Tool=t;if(t==Tool.Poison)State.Poisoned=true;Message=$"已拿起{Rules.Names[(int)t]}，点击桌面上的目标";}
     public void Feed(double now){if(Paused||State.Life.FocusRemaining>0)return;if(now-lastFeed<2){Message="嚼嚼嚼……稍等两秒再喂";return;}lastFeed=now;State.Xp+=3;State.Fed++;WorldSignal("food");Message="面包屑 +3 生长点。旮杂：还有吗？";}
     public void Folder(double now,PointF? origin=null,string identity="preview",Rectangle? frame=null){if(Paused||State.Life.FocusRemaining>0||State.Quiet||now-lastFolder<1.2)return;lastFolder=now;State.Xp++;string key=LocationKey(identity);if(frame.HasValue){folderFrames[key]=frame.Value;if(folderFrames.Count>64)folderFrames.Remove(folderFrames.Keys.Order().First());}WorldSignal("visit",location:key);Message="角落里传来一点动静。";}
 
@@ -117,13 +119,14 @@ public partial class Game {
         else{r.X=f.Right-220;r.Y=f.Top+200;r.Born=now;}
         if(!State.Progression.Seen.Contains(kind.ToString())){State.Progression.Seen.Add(kind.ToString());Message=kind==Kind.Mouse?"一只小老鼠路过。":"边缘伸来一只猫爪。";}
     }
-    public void TogglePause(double now){Paused=!Paused;if(Paused)pauseStart=now;else{var d=now-pauseStart;foreach(var r in State.Residents){r.Born+=d;r.ExitAt+=d;r.FlyingUntil+=d;r.TauntUntil+=d;}NextAppearance+=d;}Message=Paused?"全体暂停，可以安心办公":"住客们回来啦";}
+    public void TogglePause(double now){Paused=!Paused;Blind?.Action(Paused?"pause":"resume");if(Paused)pauseStart=now;else{var d=now-pauseStart;foreach(var r in State.Residents){r.Born+=d;r.ExitAt+=d;r.FlyingUntil+=d;r.TauntUntil+=d;}NextAppearance+=d;}Message=Paused?"全体暂停，可以安心办公":"住客们回来啦";}
     public void Use(Guid id,double now,double? flightRoll=null){
+        Blind?.Action(State.Tool.ToString().ToLowerInvariant(),id.ToString(),time:State.World?.time??0);
         var r=State.Residents.Find(r=>r.Id==id);if(r==null||Paused||State.Life.FocusRemaining>0)return;var t=State.Tool;if(!Owns(t))return;
         if(r.Friend||State.Life.Protects(r.Id)||(r.Live&&State.Life.SafeLeft&&r.X<r.Screen.Left+r.Screen.Width/2)){Message=PlayfulUse(r,t,now);return;}
         if(r.Live){
             WorldSignal("threat",id);
-            if(t==Tool.Poison){WorldSignal("chemical",id);Message="呲——泡沫留下了，看看它往哪儿躲";return;}
+            if(t==Tool.Poison){WorldSignal("chemical",id);Message="呲——";return;}
             if(t==Tool.Cleaner){Message="清洁剂只擦污渍，旮杂笑你了";return;}
             
             if(r.FlyingUntil>now&&t!=Tool.Vacuum){Message="嘿嘿，打不到～等落地或用吸尘器";return;}

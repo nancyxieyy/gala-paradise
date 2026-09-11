@@ -10,6 +10,8 @@ struct WorldCreature: Codable {
     var id="", stage="adult", home="edge", location="edge", intent="idle", locationMemory="edge", emergedFrom="edge"
     var age=0.0, energy=1.0, hunger=0.2, fear=0.0, curiosity=0.5, boldness=0.5, fertility=0.6, trust=0.0
     var threat=0.0, friendly=0.0, exposure=0.0, resistance=0.5, distance=0.5, cooldown=0.0, visibleUntil=0.0
+    var lastMigrationTime = -1.0
+    var previousLocation="", originEgg=""
     var protected=false, playerChemical=false
     var roach:Bool {["adult","baby","gold"].contains(stage)}
 }
@@ -24,6 +26,8 @@ struct RuleBasedWorldDirector:IWorldDirector {
     func parameters(_ w:World)->DirectorParameters {DirectorParameters(pressure:w.creatures.filter{$0.roach}.count>26 ? 0.35 : 1,rarity:1+min(1,w.interactions/20),tension:min(1,w.visibleActivity/30))}
 }
 struct World:Codable {
+    var migrationMode="treatment"
+    var reversals=0, chemicalMigrations=0
     var capacity=38
     var eventSerial:UInt64=0
     var schema=1
@@ -69,6 +73,19 @@ struct World:Codable {
         }
     }
     func preference(_ h:WorldHabitat,_ c:WorldCreature)->Double {h.nestability*0.6+h.food*(0.4+c.hunger)-h.disturbance*1.4-h.chemical*2-h.pressure*0.4+h.safety*0.2+(c.locationMemory==h.id ? 0.08 : 0)}
+    func migrationAllowed(_ c:WorldCreature,_ h:WorldHabitat,_ destination:WorldHabitat)->Bool {
+        let advantage=preference(destination,c)-preference(h,c)
+        if migrationMode=="control" {return time>=c.cooldown && destination.id != h.id && preference(destination,c)>preference(h,c)+0.15}
+        let strong=h.chemical>0.6 || c.fear+c.threat>0.9 || h.disturbance>0.85 || h.pressure>2
+        let elapsed=c.lastMigrationTime<0 ? 1e9 : time-c.lastMigrationTime
+        let inertia=0.12*max(0,1-elapsed/90)
+        return destination.id != h.id && (strong ? advantage>0.15 : time>=c.cooldown && elapsed>=30 && advantage>0.30+inertia)
+    }
+    mutating func recordMigration(_ c:inout WorldCreature,to destination:String,chemical:Double) {
+        if c.lastMigrationTime>=0 && time-c.lastMigrationTime<=120 && destination==c.previousLocation {reversals+=1}
+        if chemical>0.4 {chemicalMigrations+=1}
+        c.previousLocation=c.location;c.lastMigrationTime=time
+    }
     mutating func step(rate:Double=1,director:any IWorldDirector=RuleBasedWorldDirector()) {
         let dt=2.0;time+=dt;revision+=1;visitorKind="";applySignals()
         let d=director.parameters(self);visibleActivity*=0.995
@@ -91,7 +108,7 @@ struct World:Codable {
             var c=creatures[i];let hi=habitat(c.location);let h=habitats[hi]
             if c.stage=="egg" {
                 c.age+=dt*rate*(h.chemical>0.4 ? 0.4 : 1)
-                if c.age>=180 && creatures.count<capacity-1 {c.stage="hatched";event(c.id,h.id,"incubation","egg","hatched","lifecycle");_=add("baby",h.id);_=add("baby",h.id)}
+                if c.age>=180 && creatures.count<capacity-1 {c.stage="hatched";event(c.id,h.id,"incubation","egg","hatched","lifecycle");for _ in 0..<2 {let baby=add("baby",h.id);if let j=creatures.firstIndex(where:{$0.id==baby}) {creatures[j].originEgg=c.id}}}
                 creatures[i]=c;continue
             }
             guard c.roach else {continue}
@@ -107,7 +124,8 @@ struct World:Codable {
             if c.intent != intent {event(c.id,h.id,"utility",c.intent,intent,"utility");c.intent=intent}
             // 2: migrate only when a better location exists and movement cooldown allows it.
             let destination=habitats.indices.max{preference(habitats[$0],c)<preference(habitats[$1],c)}!
-            if time>=c.cooldown && habitats[destination].id != h.id && preference(habitats[destination],c)>preference(h,c)+0.15 && (intent=="flee" || random()<dt/40) {
+            if migrationAllowed(c,h,habitats[destination]) && (intent=="flee" || random()<dt/40) {
+                recordMigration(&c,to:habitats[destination].id,chemical:h.chemical)
                 let old=c.location;c.emergedFrom=old;c.location=habitats[destination].id;c.home=c.location;c.locationMemory=c.location;c.cooldown=time+20;c.visibleUntil=time+10;migrations+=1;visibleActivity+=1;event(c.id,c.location,"migration",old,c.location,"preference")
                 if h.nest && !habitats[hi].exposed {habitats[hi].exposed=true;event("nest",h.id,"passing resident","hidden","exposed","pressure")}
             } else if intent=="flee" || (intent=="explore" && random()<dt/90) || (intent=="approach" && random()<dt/60) {c.visibleUntil=time+8;visibleActivity+=0.2}
@@ -154,6 +172,9 @@ extension WorldCreature {
  init(from decoder:Decoder) throws {
  self.init()
  let c=try decoder.container(keyedBy:WorldKey.self)
+ lastMigrationTime=try c.decodeIfPresent(Double.self,forKey:WorldKey("lastMigrationTime")) ?? lastMigrationTime
+ previousLocation=try c.decodeIfPresent(String.self,forKey:WorldKey("previousLocation")) ?? previousLocation
+ originEgg=try c.decodeIfPresent(String.self,forKey:WorldKey("originEgg")) ?? originEgg
  id=try c.decodeIfPresent(String.self,forKey:WorldKey("id")) ?? id
  stage=try c.decodeIfPresent(String.self,forKey:WorldKey("stage")) ?? stage
  home=try c.decodeIfPresent(String.self,forKey:WorldKey("home")) ?? home
@@ -184,6 +205,9 @@ extension World {
  init(from decoder:Decoder) throws {
  self.init()
  let c=try decoder.container(keyedBy:WorldKey.self)
+ migrationMode=try c.decodeIfPresent(String.self,forKey:WorldKey("migrationMode")) ?? migrationMode
+ reversals=try c.decodeIfPresent(Int.self,forKey:WorldKey("reversals")) ?? reversals
+ chemicalMigrations=try c.decodeIfPresent(Int.self,forKey:WorldKey("chemicalMigrations")) ?? chemicalMigrations
  eventSerial=try c.decodeIfPresent(UInt64.self,forKey:WorldKey("eventSerial")) ?? eventSerial
  capacity=try c.decodeIfPresent(Int.self,forKey:WorldKey("capacity")) ?? capacity
  schema=try c.decodeIfPresent(Int.self,forKey:WorldKey("schema")) ?? schema

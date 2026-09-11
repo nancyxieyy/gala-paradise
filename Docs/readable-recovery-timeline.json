@@ -1,0 +1,806 @@
+{
+  "samples": [
+    {
+      "deaths": 0,
+      "eggAge": 0.8,
+      "eggs": 2,
+      "juveniles": 0,
+      "migrations": 5,
+      "nests": 0,
+      "population": 6,
+      "time": 2
+    },
+    {
+      "deaths": 0,
+      "eggAge": 24.80000000000001,
+      "eggs": 2,
+      "juveniles": 0,
+      "migrations": 6,
+      "nests": 0,
+      "population": 6,
+      "time": 62
+    },
+    {
+      "deaths": 6,
+      "eggAge": 48.799999999999955,
+      "eggs": 2,
+      "juveniles": 0,
+      "migrations": 6,
+      "nests": 1,
+      "population": 0,
+      "time": 122
+    },
+    {
+      "deaths": 6,
+      "eggAge": 72.79999999999987,
+      "eggs": 2,
+      "juveniles": 0,
+      "migrations": 6,
+      "nests": 1,
+      "population": 0,
+      "time": 182
+    },
+    {
+      "deaths": 6,
+      "eggAge": 96.79999999999978,
+      "eggs": 2,
+      "juveniles": 0,
+      "migrations": 6,
+      "nests": 1,
+      "population": 0,
+      "time": 242
+    },
+    {
+      "deaths": 6,
+      "eggAge": 129.1999999999997,
+      "eggs": 2,
+      "juveniles": 0,
+      "migrations": 6,
+      "nests": 1,
+      "population": 0,
+      "time": 302
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 6,
+      "nests": 1,
+      "population": 4,
+      "time": 362
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 9,
+      "nests": 1,
+      "population": 4,
+      "time": 422
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 9,
+      "nests": 1,
+      "population": 4,
+      "time": 482
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 9,
+      "nests": 1,
+      "population": 4,
+      "time": 542
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 9,
+      "nests": 1,
+      "population": 4,
+      "time": 602
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 4,
+      "time": 662
+    },
+    {
+      "deaths": 6,
+      "eggAge": 8,
+      "eggs": 1,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 4,
+      "time": 722
+    },
+    {
+      "deaths": 6,
+      "eggAge": 68,
+      "eggs": 2,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 4,
+      "time": 782
+    },
+    {
+      "deaths": 6,
+      "eggAge": 128,
+      "eggs": 2,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 4,
+      "time": 842
+    },
+    {
+      "deaths": 6,
+      "eggAge": 178,
+      "eggs": 1,
+      "juveniles": 2,
+      "migrations": 9,
+      "nests": 1,
+      "population": 6,
+      "time": 902
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 962
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1022
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1082
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1142
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 2,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1202
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1262
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1322
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1382
+    },
+    {
+      "deaths": 6,
+      "eggAge": 50,
+      "eggs": 1,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1442
+    },
+    {
+      "deaths": 6,
+      "eggAge": 110,
+      "eggs": 1,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1502
+    },
+    {
+      "deaths": 6,
+      "eggAge": 170,
+      "eggs": 2,
+      "juveniles": 0,
+      "migrations": 9,
+      "nests": 1,
+      "population": 8,
+      "time": 1562
+    },
+    {
+      "deaths": 6,
+      "eggAge": 88,
+      "eggs": 1,
+      "juveniles": 2,
+      "migrations": 11,
+      "nests": 1,
+      "population": 10,
+      "time": 1622
+    },
+    {
+      "deaths": 6,
+      "eggAge": 148,
+      "eggs": 1,
+      "juveniles": 2,
+      "migrations": 11,
+      "nests": 2,
+      "population": 10,
+      "time": 1682
+    },
+    {
+      "deaths": 6,
+      "eggAge": 0,
+      "eggs": 0,
+      "juveniles": 4,
+      "migrations": 11,
+      "nests": 2,
+      "population": 12,
+      "time": 1742
+    }
+  ],
+  "events": [
+    {
+      "entity": "00000000-0000-4000-8000-000000000001",
+      "location": "Archive",
+      "new": "Archive",
+      "previous": "Downloads",
+      "rule": "preference",
+      "sequence": 3,
+      "timestamp": 2,
+      "trigger": "migration"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000002",
+      "location": "Archive",
+      "new": "Archive",
+      "previous": "Downloads",
+      "rule": "preference",
+      "sequence": 5,
+      "timestamp": 2,
+      "trigger": "migration"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000004",
+      "location": "Archive",
+      "new": "Archive",
+      "previous": "Downloads",
+      "rule": "preference",
+      "sequence": 8,
+      "timestamp": 2,
+      "trigger": "migration"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000005",
+      "location": "Archive",
+      "new": "Archive",
+      "previous": "Downloads",
+      "rule": "preference",
+      "sequence": 10,
+      "timestamp": 2,
+      "trigger": "migration"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000006",
+      "location": "Archive",
+      "new": "Archive",
+      "previous": "Downloads",
+      "rule": "preference",
+      "sequence": 12,
+      "timestamp": 2,
+      "trigger": "migration"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000003",
+      "location": "Archive",
+      "new": "Archive",
+      "previous": "Downloads",
+      "rule": "preference",
+      "sequence": 16,
+      "timestamp": 4,
+      "trigger": "migration"
+    },
+    {
+      "entity": "nest",
+      "location": "Archive",
+      "new": "nest",
+      "previous": "absent",
+      "rule": "nest",
+      "sequence": 25,
+      "timestamp": 118,
+      "trigger": "formation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000001",
+      "location": "Downloads",
+      "new": "corpse",
+      "previous": "adult",
+      "rule": "player",
+      "sequence": 30,
+      "timestamp": 122,
+      "trigger": "manual defeat"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000002",
+      "location": "Downloads",
+      "new": "corpse",
+      "previous": "adult",
+      "rule": "player",
+      "sequence": 31,
+      "timestamp": 122,
+      "trigger": "manual defeat"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000003",
+      "location": "Downloads",
+      "new": "corpse",
+      "previous": "adult",
+      "rule": "player",
+      "sequence": 32,
+      "timestamp": 122,
+      "trigger": "manual defeat"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000004",
+      "location": "Downloads",
+      "new": "corpse",
+      "previous": "adult",
+      "rule": "player",
+      "sequence": 33,
+      "timestamp": 122,
+      "trigger": "manual defeat"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000005",
+      "location": "Downloads",
+      "new": "corpse",
+      "previous": "adult",
+      "rule": "player",
+      "sequence": 34,
+      "timestamp": 122,
+      "trigger": "manual defeat"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000006",
+      "location": "Downloads",
+      "new": "corpse",
+      "previous": "adult",
+      "rule": "player",
+      "sequence": 35,
+      "timestamp": 122,
+      "trigger": "manual defeat"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000007",
+      "location": "Downloads",
+      "new": "hatched",
+      "previous": "egg",
+      "rule": "lifecycle",
+      "sequence": 36,
+      "timestamp": 354,
+      "trigger": "incubation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000009",
+      "location": "Downloads",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 37,
+      "timestamp": 354,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000a",
+      "location": "Downloads",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 38,
+      "timestamp": 354,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000008",
+      "location": "Downloads",
+      "new": "hatched",
+      "previous": "egg",
+      "rule": "lifecycle",
+      "sequence": 39,
+      "timestamp": 354,
+      "trigger": "incubation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000b",
+      "location": "Downloads",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 40,
+      "timestamp": 354,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000c",
+      "location": "Downloads",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 41,
+      "timestamp": 354,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000a",
+      "location": "Archive",
+      "new": "Archive",
+      "previous": "Downloads",
+      "rule": "preference",
+      "sequence": 47,
+      "timestamp": 364,
+      "trigger": "migration"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000b",
+      "location": "Archive",
+      "new": "Archive",
+      "previous": "Downloads",
+      "rule": "preference",
+      "sequence": 50,
+      "timestamp": 376,
+      "trigger": "migration"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000c",
+      "location": "Archive",
+      "new": "Archive",
+      "previous": "Downloads",
+      "rule": "preference",
+      "sequence": 52,
+      "timestamp": 398,
+      "trigger": "migration"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000009",
+      "location": "Downloads",
+      "new": "adult",
+      "previous": "baby",
+      "rule": "lifecycle",
+      "sequence": 62,
+      "timestamp": 654,
+      "trigger": "maturation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000a",
+      "location": "Archive",
+      "new": "adult",
+      "previous": "baby",
+      "rule": "lifecycle",
+      "sequence": 63,
+      "timestamp": 654,
+      "trigger": "maturation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000b",
+      "location": "Archive",
+      "new": "adult",
+      "previous": "baby",
+      "rule": "lifecycle",
+      "sequence": 64,
+      "timestamp": 654,
+      "trigger": "maturation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000c",
+      "location": "Archive",
+      "new": "adult",
+      "previous": "baby",
+      "rule": "lifecycle",
+      "sequence": 65,
+      "timestamp": 654,
+      "trigger": "maturation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000d",
+      "location": "Archive",
+      "new": "egg",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 68,
+      "timestamp": 714,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000e",
+      "location": "Archive",
+      "new": "egg",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 70,
+      "timestamp": 724,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000d",
+      "location": "Archive",
+      "new": "hatched",
+      "previous": "egg",
+      "rule": "lifecycle",
+      "sequence": 80,
+      "timestamp": 894,
+      "trigger": "incubation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000f",
+      "location": "Archive",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 81,
+      "timestamp": 894,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000010",
+      "location": "Archive",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 82,
+      "timestamp": 894,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000e",
+      "location": "Archive",
+      "new": "hatched",
+      "previous": "egg",
+      "rule": "lifecycle",
+      "sequence": 88,
+      "timestamp": 904,
+      "trigger": "incubation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000011",
+      "location": "Archive",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 89,
+      "timestamp": 904,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000012",
+      "location": "Archive",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 90,
+      "timestamp": 904,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000f",
+      "location": "Archive",
+      "new": "adult",
+      "previous": "baby",
+      "rule": "lifecycle",
+      "sequence": 108,
+      "timestamp": 1194,
+      "trigger": "maturation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000010",
+      "location": "Archive",
+      "new": "adult",
+      "previous": "baby",
+      "rule": "lifecycle",
+      "sequence": 109,
+      "timestamp": 1194,
+      "trigger": "maturation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000011",
+      "location": "Archive",
+      "new": "adult",
+      "previous": "baby",
+      "rule": "lifecycle",
+      "sequence": 110,
+      "timestamp": 1204,
+      "trigger": "maturation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000012",
+      "location": "Archive",
+      "new": "adult",
+      "previous": "baby",
+      "rule": "lifecycle",
+      "sequence": 111,
+      "timestamp": 1204,
+      "trigger": "maturation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000013",
+      "location": "Archive",
+      "new": "egg",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 126,
+      "timestamp": 1392,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000014",
+      "location": "Archive",
+      "new": "egg",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 139,
+      "timestamp": 1534,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000013",
+      "location": "Archive",
+      "new": "hatched",
+      "previous": "egg",
+      "rule": "lifecycle",
+      "sequence": 144,
+      "timestamp": 1572,
+      "trigger": "incubation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000015",
+      "location": "Archive",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 145,
+      "timestamp": 1572,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000016",
+      "location": "Archive",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 146,
+      "timestamp": 1572,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000015",
+      "location": "Downloads",
+      "new": "Downloads",
+      "previous": "Archive",
+      "rule": "preference",
+      "sequence": 151,
+      "timestamp": 1582,
+      "trigger": "migration"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-00000000000b",
+      "location": "Downloads",
+      "new": "Downloads",
+      "previous": "Archive",
+      "rule": "preference",
+      "sequence": 154,
+      "timestamp": 1608,
+      "trigger": "migration"
+    },
+    {
+      "entity": "nest",
+      "location": "Downloads",
+      "new": "nest",
+      "previous": "absent",
+      "rule": "nest",
+      "sequence": 161,
+      "timestamp": 1634,
+      "trigger": "formation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000014",
+      "location": "Archive",
+      "new": "hatched",
+      "previous": "egg",
+      "rule": "lifecycle",
+      "sequence": 169,
+      "timestamp": 1714,
+      "trigger": "incubation"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000017",
+      "location": "Archive",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 170,
+      "timestamp": 1714,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000018",
+      "location": "Archive",
+      "new": "baby",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 171,
+      "timestamp": 1714,
+      "trigger": "created"
+    },
+    {
+      "entity": "00000000-0000-4000-8000-000000000019",
+      "location": "Archive",
+      "new": "egg",
+      "previous": "absent",
+      "rule": "lifecycle",
+      "sequence": 178,
+      "timestamp": 1790,
+      "trigger": "created"
+    }
+  ]
+}

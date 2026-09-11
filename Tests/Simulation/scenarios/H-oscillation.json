@@ -1,0 +1,64 @@
+{
+  "name": "H-oscillation",
+  "seed": 42,
+  "duration": 1800,
+  "habitats": [
+    {
+      "id": "A",
+      "food": 0.5,
+      "nestability": 0.8
+    },
+    {
+      "id": "B",
+      "food": 0.5,
+      "nestability": 0.8
+    }
+  ],
+  "creatures": [
+    {
+      "location": "A"
+    },
+    {
+      "location": "A"
+    },
+    {
+      "location": "A"
+    },
+    {
+      "location": "A"
+    },
+    {
+      "location": "A"
+    },
+    {
+      "location": "A"
+    },
+    {
+      "location": "A"
+    },
+    {
+      "location": "A"
+    }
+  ],
+  "actions": [
+    {
+      "at": 0,
+      "every": 120,
+      "kind": "food",
+      "location": "A",
+      "amount": 0.2
+    },
+    {
+      "at": 60,
+      "every": 120,
+      "kind": "food",
+      "location": "B",
+      "amount": 0.2
+    },
+    {
+      "at": 900,
+      "kind": "chemical",
+      "location": "A"
+    }
+  ]
+}

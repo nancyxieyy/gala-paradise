@@ -3,6 +3,7 @@ public partial class Game {
  public string? ClipboardText;
  public void Summon(Resident r,double now){if(Paused||State.Life.FocusRemaining>0)return;var f=Screens[0];r.Screen=f;r.X=r.Kind==Kind.CatPaw?f.Right-220:f.Left+f.Width/2-80;r.Y=f.Top+170;if(r.Kind==Kind.CatPaw)r.Born=now-2;r.TargetX=r.X+80;r.TargetY=r.Y;r.ExitAt=now+8;r.Exiting=false;r.Hidden=false;State.Life.Observe(r,now);}
  public void LifeAction(string action,Guid? id,string text,string? note,double minutes=25,bool inPlace=false){
+  Blind?.Action(action,id?.ToString()??"",time:State.World?.time??0);
   var l=State.Life;double now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/1000.0;ClipboardText=null;
   if((Paused||l.FocusRemaining>0)&&!new[]{"stash","return","done","delete","share","cancel"}.Contains(action)){Message="先结束专注或继续桌宠，再进行动物互动";return;}
   switch(action){

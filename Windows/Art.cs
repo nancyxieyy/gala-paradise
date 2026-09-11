@@ -7,11 +7,11 @@ static class Art {
     public static void Line(Graphics g,Color c,float width,params PointF[] pts){using var p=new Pen(c,width){StartCap=LineCap.Round,EndCap=LineCap.Round,LineJoin=LineJoin.Round};g.DrawLines(p,pts);}
     public static void Round(Graphics g,RectangleF r,Color c,float radius=12){using var path=new GraphicsPath();float d=radius*2;path.AddArc(r.X,r.Y,d,d,180,90);path.AddArc(r.Right-d,r.Y,d,d,270,90);path.AddArc(r.Right-d,r.Bottom-d,d,d,0,90);path.AddArc(r.X,r.Bottom-d,d,d,90,90);path.CloseFigure();using var b=new SolidBrush(c);g.FillPath(b,path);}
     public static void Text(Graphics g,string s,float x,float y,float size=14,Color? c=null,bool bold=false,float width=850){using var f=new Font("Microsoft YaHei UI",size,bold?FontStyle.Bold:FontStyle.Regular,GraphicsUnit.Pixel);using var b=new SolidBrush(c??Ink);using var fmt=new StringFormat{Trimming=StringTrimming.EllipsisCharacter,FormatFlags=StringFormatFlags.NoWrap};g.DrawString(s,f,b,new RectangleF(x,y,width,size*2),fmt);}
-    public static void Bug(Graphics g,RectangleF box,Kind kind=Kind.Adult,double phase=0,bool flying=false,float facing=1){
+    public static void Bug(Graphics g,RectangleF box,Kind kind=Kind.Adult,double phase=0,bool flying=false,float facing=1,double eggProgress=0,bool emptyShell=false){
         if(kind is Kind.Mouse or Kind.CatPaw){Friend(g,box,kind==Kind.CatPaw,phase,facing);return;}
         var state=g.Save();g.TranslateTransform(box.X,box.Y);g.ScaleTransform(box.Width/140,box.Height/140);g.SmoothingMode=SmoothingMode.AntiAlias;
         if(kind==Kind.Stain){for(int n=0;n<8;n++){var a=n*.79;Oval(g,Color.FromArgb(225,218,184,103),60+(float)Math.Cos(a)*27,65+(float)Math.Sin(a)*17,19+n%3*7,18);}Oval(g,Color.FromArgb(235,201,118),36,60,65,37);Oval(g,Color.FromArgb(255,241,185),42,65,15,7);Oval(g,Brown,17,61,5,4);}
-        else if(kind==Kind.Egg){for(int n=0;n<3;n++){Oval(g,Color.FromArgb(217,183,140),29+n*23,70-n%2*8,29,37,Color.FromArgb(140,105,72),2.5f);for(int k=0;k<3;k++)Line(g,Color.FromArgb(174,137,99),1.5f,new(36+n*23,79+k*7-n%2*8),new(50+n*23,79+k*7-n%2*8));}}
+        else if(kind==Kind.Egg){float progress=(float)Math.Clamp(eggProgress,0,1);for(int n=0;n<3;n++){float x=29+n*23,y=70-n%2*8;Oval(g,Color.FromArgb(emptyShell?140:255,217,183,140),x,y+(emptyShell?18:0),29+progress*3,emptyShell?15:37+progress*3,Color.FromArgb(140,105,72),2.5f);if(progress<.65){for(int k=0;k<3;k++)Line(g,Color.FromArgb(174,137,99),1.5f,new(x+7,y+9+k*7),new(x+21,y+9+k*7));}else if(emptyShell)Line(g,Color.FromArgb(140,140,105,72),2,new(x+3,y+22),new(x+8,y+18),new(x+14,y+23),new(x+21,y+18),new(x+27,y+22));else Line(g,Color.FromArgb(140,105,72),2,new(x+15,y+3),new(x+9,y+13),new(x+19,y+21),new(x+12,y+32));}}
         else{
             bool dead=kind==Kind.Corpse;if(dead){g.TranslateTransform(140,140);g.RotateTransform(180);}
             Oval(g,Color.FromArgb(40,110,76,49),27,107,95,15);float wig=(float)Math.Sin(phase*12)*4;
@@ -25,6 +25,11 @@ static class Art {
             Oval(g,Color.FromArgb(201,145,103),99,51,8,5);Line(g,Ink,2,new(56,114),new(64,115),new(70,112));
         }
         g.Restore(state);
+    }
+    public static void Cue(Graphics g,CueSnapshot cue){
+        if(cue.Shell){Bug(g,new(34,0,52,52),Kind.Egg,eggProgress:1,emptyShell:true);return;}
+        for(int n=0;n<7&&cue.Chemical>0;n++)Oval(g,Color.FromArgb((int)(cue.Chemical*92),228,239,217),12+n*13,18+n%3*7,20,8,Color.FromArgb((int)(cue.Chemical*51),166,186,153),1);
+        for(int n=0;n<(int)(cue.Crumbs*8);n++)Oval(g,Color.FromArgb(140,167,129,76),19+n*11,38+n%3*4,3+n%2,2);
     }
     public static void Friend(Graphics g,RectangleF box,bool cat,double phase,float facing=1){
         var save=g.Save();g.TranslateTransform(box.X,box.Y);g.ScaleTransform(box.Width/140,box.Height/140);g.SmoothingMode=SmoothingMode.AntiAlias;

@@ -1,0 +1,19 @@
+{
+  "seeds": [
+    7,
+    19,
+    42,
+    73,
+    101
+  ],
+  "modes": [
+    "control",
+    "treatment"
+  ],
+  "scenarios": [
+    "F-two-hours",
+    "H-oscillation",
+    "C-chemical"
+  ],
+  "reversalWindow": 120
+}

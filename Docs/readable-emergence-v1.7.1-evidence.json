@@ -1,0 +1,967 @@
+{
+  "config": {
+    "seeds": [
+      7,
+      19,
+      42,
+      73,
+      101
+    ],
+    "modes": [
+      "control",
+      "treatment"
+    ],
+    "scenarios": [
+      "F-two-hours",
+      "H-oscillation",
+      "C-chemical"
+    ],
+    "reversalWindow": 120
+  },
+  "rows": [
+    {
+      "scenario": "F-two-hours",
+      "seed": 7,
+      "mode": "control",
+      "migrations": 279,
+      "reversals": 24,
+      "reversalRate": 0.08602150537634409,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 106,
+      "shockDepartures": 7,
+      "populationDistribution": {
+        "Archive": 12
+      },
+      "population": 12,
+      "nests": 2,
+      "births": 42,
+      "deaths": 24,
+      "extinctions": 0,
+      "recolonizations": 16
+    },
+    {
+      "scenario": "F-two-hours",
+      "seed": 7,
+      "mode": "treatment",
+      "migrations": 281,
+      "reversals": 10,
+      "reversalRate": 0.03558718861209965,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 122,
+      "shockDepartures": 12,
+      "populationDistribution": {
+        "Archive": 17,
+        "Downloads": 2
+      },
+      "population": 19,
+      "nests": 2,
+      "births": 43,
+      "deaths": 17,
+      "extinctions": 0,
+      "recolonizations": 15
+    },
+    {
+      "scenario": "F-two-hours",
+      "seed": 19,
+      "mode": "control",
+      "migrations": 293,
+      "reversals": 24,
+      "reversalRate": 0.08191126279863481,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 116,
+      "shockDepartures": 8,
+      "populationDistribution": {
+        "Archive": 14,
+        "Downloads": 1
+      },
+      "population": 15,
+      "nests": 2,
+      "births": 39,
+      "deaths": 19,
+      "extinctions": 0,
+      "recolonizations": 13
+    },
+    {
+      "scenario": "F-two-hours",
+      "seed": 19,
+      "mode": "treatment",
+      "migrations": 202,
+      "reversals": 2,
+      "reversalRate": 0.009900990099009901,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 90,
+      "shockDepartures": 7,
+      "populationDistribution": {
+        "Archive": 13,
+        "Downloads": 1
+      },
+      "population": 14,
+      "nests": 2,
+      "births": 39,
+      "deaths": 20,
+      "extinctions": 0,
+      "recolonizations": 14
+    },
+    {
+      "scenario": "F-two-hours",
+      "seed": 42,
+      "mode": "control",
+      "migrations": 251,
+      "reversals": 8,
+      "reversalRate": 0.03187250996015936,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 106,
+      "shockDepartures": 11,
+      "populationDistribution": {
+        "Archive": 13,
+        "Downloads": 1
+      },
+      "population": 14,
+      "nests": 2,
+      "births": 39,
+      "deaths": 20,
+      "extinctions": 0,
+      "recolonizations": 13
+    },
+    {
+      "scenario": "F-two-hours",
+      "seed": 42,
+      "mode": "treatment",
+      "migrations": 296,
+      "reversals": 15,
+      "reversalRate": 0.05067567567567568,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 129,
+      "shockDepartures": 11,
+      "populationDistribution": {
+        "Archive": 16,
+        "Downloads": 2
+      },
+      "population": 18,
+      "nests": 2,
+      "births": 42,
+      "deaths": 18,
+      "extinctions": 0,
+      "recolonizations": 12
+    },
+    {
+      "scenario": "F-two-hours",
+      "seed": 73,
+      "mode": "control",
+      "migrations": 334,
+      "reversals": 29,
+      "reversalRate": 0.08682634730538923,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 146,
+      "shockDepartures": 12,
+      "populationDistribution": {
+        "Archive": 16,
+        "Downloads": 1
+      },
+      "population": 17,
+      "nests": 2,
+      "births": 42,
+      "deaths": 19,
+      "extinctions": 0,
+      "recolonizations": 13
+    },
+    {
+      "scenario": "F-two-hours",
+      "seed": 73,
+      "mode": "treatment",
+      "migrations": 247,
+      "reversals": 3,
+      "reversalRate": 0.012145748987854251,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 108,
+      "shockDepartures": 12,
+      "populationDistribution": {
+        "Archive": 14
+      },
+      "population": 14,
+      "nests": 2,
+      "births": 39,
+      "deaths": 20,
+      "extinctions": 0,
+      "recolonizations": 15
+    },
+    {
+      "scenario": "F-two-hours",
+      "seed": 101,
+      "mode": "control",
+      "migrations": 273,
+      "reversals": 19,
+      "reversalRate": 0.0695970695970696,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 112,
+      "shockDepartures": 12,
+      "populationDistribution": {
+        "Archive": 12
+      },
+      "population": 12,
+      "nests": 2,
+      "births": 39,
+      "deaths": 22,
+      "extinctions": 0,
+      "recolonizations": 14
+    },
+    {
+      "scenario": "F-two-hours",
+      "seed": 101,
+      "mode": "treatment",
+      "migrations": 256,
+      "reversals": 7,
+      "reversalRate": 0.02734375,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 111,
+      "shockDepartures": 11,
+      "populationDistribution": {
+        "Archive": 14,
+        "Downloads": 1
+      },
+      "population": 15,
+      "nests": 2,
+      "births": 43,
+      "deaths": 21,
+      "extinctions": 0,
+      "recolonizations": 15
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 7,
+      "mode": "control",
+      "migrations": 19,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 4,
+      "shockDepartures": 4,
+      "populationDistribution": {
+        "A": 12,
+        "B": 15
+      },
+      "population": 27,
+      "nests": 2,
+      "births": 39,
+      "deaths": 7,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 7,
+      "mode": "treatment",
+      "migrations": 20,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 6,
+      "shockDepartures": 6,
+      "populationDistribution": {
+        "B": 16,
+        "A": 14
+      },
+      "population": 30,
+      "nests": 2,
+      "births": 36,
+      "deaths": 2,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 19,
+      "mode": "control",
+      "migrations": 26,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 7,
+      "shockDepartures": 7,
+      "populationDistribution": {
+        "A": 16,
+        "B": 18
+      },
+      "population": 34,
+      "nests": 2,
+      "births": 39,
+      "deaths": 0,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 19,
+      "mode": "treatment",
+      "migrations": 9,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 5,
+      "shockDepartures": 5,
+      "populationDistribution": {
+        "B": 7,
+        "A": 2
+      },
+      "population": 9,
+      "nests": 2,
+      "births": 6,
+      "deaths": 1,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 42,
+      "mode": "control",
+      "migrations": 27,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 7,
+      "shockDepartures": 7,
+      "populationDistribution": {
+        "A": 19,
+        "B": 17
+      },
+      "population": 36,
+      "nests": 2,
+      "births": 43,
+      "deaths": 0,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 42,
+      "mode": "treatment",
+      "migrations": 22,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 7,
+      "shockDepartures": 7,
+      "populationDistribution": {
+        "B": 18,
+        "A": 16
+      },
+      "population": 34,
+      "nests": 2,
+      "births": 39,
+      "deaths": 0,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 73,
+      "mode": "control",
+      "migrations": 31,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 11,
+      "shockDepartures": 11,
+      "populationDistribution": {
+        "A": 16,
+        "B": 17
+      },
+      "population": 33,
+      "nests": 2,
+      "births": 42,
+      "deaths": 3,
+      "extinctions": 0,
+      "recolonizations": 2
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 73,
+      "mode": "treatment",
+      "migrations": 27,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 10,
+      "shockDepartures": 10,
+      "populationDistribution": {
+        "B": 15,
+        "A": 15
+      },
+      "population": 30,
+      "nests": 2,
+      "births": 36,
+      "deaths": 2,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 101,
+      "mode": "control",
+      "migrations": 15,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 4,
+      "shockDepartures": 4,
+      "populationDistribution": {
+        "B": 7,
+        "A": 9
+      },
+      "population": 16,
+      "nests": 2,
+      "births": 15,
+      "deaths": 2,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "H-oscillation",
+      "seed": 101,
+      "mode": "treatment",
+      "migrations": 28,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 12,
+      "shockDepartures": 12,
+      "populationDistribution": {
+        "A": 14,
+        "B": 16
+      },
+      "population": 30,
+      "nests": 2,
+      "births": 36,
+      "deaths": 2,
+      "extinctions": 0,
+      "recolonizations": 2
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 7,
+      "mode": "control",
+      "migrations": 18,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 8,
+      "shockDepartures": 8,
+      "populationDistribution": {
+        "Archive": 12,
+        "Downloads": 10,
+        "edge": 2
+      },
+      "population": 24,
+      "nests": 2,
+      "births": 27,
+      "deaths": 4,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 7,
+      "mode": "treatment",
+      "migrations": 20,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 10,
+      "shockDepartures": 10,
+      "populationDistribution": {
+        "Downloads": 13,
+        "Archive": 13,
+        "edge": 4
+      },
+      "population": 30,
+      "nests": 2,
+      "births": 30,
+      "deaths": 2,
+      "extinctions": 0,
+      "recolonizations": 2
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 19,
+      "mode": "control",
+      "migrations": 12,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 2,
+      "chemicalMigrations": 5,
+      "shockDepartures": 5,
+      "populationDistribution": {
+        "Archive": 8,
+        "Downloads": 5
+      },
+      "population": 13,
+      "nests": 2,
+      "births": 16,
+      "deaths": 5,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 19,
+      "mode": "treatment",
+      "migrations": 26,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 9,
+      "shockDepartures": 9,
+      "populationDistribution": {
+        "Archive": 15,
+        "Downloads": 15,
+        "edge": 5
+      },
+      "population": 35,
+      "nests": 2,
+      "births": 36,
+      "deaths": 1,
+      "extinctions": 0,
+      "recolonizations": 2
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 42,
+      "mode": "control",
+      "migrations": 17,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 5,
+      "shockDepartures": 5,
+      "populationDistribution": {
+        "Archive": 14,
+        "Downloads": 13,
+        "edge": 4
+      },
+      "population": 31,
+      "nests": 2,
+      "births": 36,
+      "deaths": 5,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 42,
+      "mode": "treatment",
+      "migrations": 25,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 8,
+      "shockDepartures": 8,
+      "populationDistribution": {
+        "Downloads": 13,
+        "Archive": 14,
+        "edge": 5
+      },
+      "population": 32,
+      "nests": 2,
+      "births": 33,
+      "deaths": 2,
+      "extinctions": 0,
+      "recolonizations": 2
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 73,
+      "mode": "control",
+      "migrations": 17,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 4,
+      "shockDepartures": 4,
+      "populationDistribution": {
+        "Downloads": 12,
+        "Archive": 13,
+        "edge": 4
+      },
+      "population": 29,
+      "nests": 2,
+      "births": 33,
+      "deaths": 5,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 73,
+      "mode": "treatment",
+      "migrations": 27,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 8,
+      "shockDepartures": 8,
+      "populationDistribution": {
+        "Archive": 15,
+        "Downloads": 14,
+        "edge": 4
+      },
+      "population": 33,
+      "nests": 2,
+      "births": 33,
+      "deaths": 1,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 101,
+      "mode": "control",
+      "migrations": 16,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 8,
+      "shockDepartures": 8,
+      "populationDistribution": {
+        "Archive": 12,
+        "Downloads": 11,
+        "edge": 5
+      },
+      "population": 28,
+      "nests": 2,
+      "births": 32,
+      "deaths": 4,
+      "extinctions": 0,
+      "recolonizations": 1
+    },
+    {
+      "scenario": "C-chemical",
+      "seed": 101,
+      "mode": "treatment",
+      "migrations": 23,
+      "reversals": 0,
+      "reversalRate": 0.0,
+      "uniqueHabitats": 3,
+      "chemicalMigrations": 11,
+      "shockDepartures": 11,
+      "populationDistribution": {
+        "Downloads": 12,
+        "Archive": 15,
+        "edge": 4
+      },
+      "population": 31,
+      "nests": 2,
+      "births": 30,
+      "deaths": 1,
+      "extinctions": 0,
+      "recolonizations": 2
+    }
+  ],
+  "pooledF": {
+    "control": 0.07272727272727272,
+    "treatment": 0.028861154446177848
+  },
+  "reduction": 0.6031591263650546,
+  "improvedSeeds": 4,
+  "primary": "PASS",
+  "guardrails": {
+    "F-two-hours": {
+      "diversitySeeds": 5,
+      "nestSeeds": 5,
+      "populationRatio": 1.1428571428571428,
+      "pass": true
+    },
+    "C-chemical": {
+      "diversitySeeds": 5,
+      "nestSeeds": 5,
+      "populationRatio": 1.288,
+      "pass": true
+    },
+    "HShock": true,
+    "CCompleteChainSeeds": 5,
+    "pass": true
+  },
+  "chains": [
+    {
+      "seed": 7,
+      "complete": true,
+      "events": [
+        {
+          "entity": "00000000-0000-4000-8000-000000000001",
+          "location": "Archive",
+          "new": "Archive",
+          "previous": "Downloads",
+          "rule": "preference",
+          "sequence": 15,
+          "timestamp": 12,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Archive",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 46,
+          "timestamp": 66,
+          "trigger": "formation"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-00000000000f",
+          "location": "Archive",
+          "new": "baby",
+          "previous": "absent",
+          "rule": "lifecycle",
+          "sequence": 56,
+          "timestamp": 280,
+          "trigger": "created"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-00000000000f",
+          "location": "Downloads",
+          "new": "Downloads",
+          "previous": "Archive",
+          "rule": "preference",
+          "sequence": 84,
+          "timestamp": 462,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Downloads",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 102,
+          "timestamp": 480,
+          "trigger": "formation"
+        }
+      ]
+    },
+    {
+      "seed": 19,
+      "complete": true,
+      "events": [
+        {
+          "entity": "00000000-0000-4000-8000-000000000001",
+          "location": "Archive",
+          "new": "Archive",
+          "previous": "Downloads",
+          "rule": "preference",
+          "sequence": 19,
+          "timestamp": 12,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Archive",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 44,
+          "timestamp": 68,
+          "trigger": "formation"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-00000000000f",
+          "location": "Archive",
+          "new": "baby",
+          "previous": "absent",
+          "rule": "lifecycle",
+          "sequence": 52,
+          "timestamp": 362,
+          "trigger": "created"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-00000000000f",
+          "location": "Downloads",
+          "new": "Downloads",
+          "previous": "Archive",
+          "rule": "preference",
+          "sequence": 64,
+          "timestamp": 468,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Downloads",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 81,
+          "timestamp": 534,
+          "trigger": "formation"
+        }
+      ]
+    },
+    {
+      "seed": 42,
+      "complete": true,
+      "events": [
+        {
+          "entity": "00000000-0000-4000-8000-000000000001",
+          "location": "Archive",
+          "new": "Archive",
+          "previous": "Downloads",
+          "rule": "preference",
+          "sequence": 17,
+          "timestamp": 12,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Archive",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 43,
+          "timestamp": 68,
+          "trigger": "formation"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-00000000000f",
+          "location": "Archive",
+          "new": "baby",
+          "previous": "absent",
+          "rule": "lifecycle",
+          "sequence": 56,
+          "timestamp": 340,
+          "trigger": "created"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-00000000000f",
+          "location": "Downloads",
+          "new": "Downloads",
+          "previous": "Archive",
+          "rule": "preference",
+          "sequence": 67,
+          "timestamp": 458,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Downloads",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 90,
+          "timestamp": 514,
+          "trigger": "formation"
+        }
+      ]
+    },
+    {
+      "seed": 73,
+      "complete": true,
+      "events": [
+        {
+          "entity": "00000000-0000-4000-8000-000000000001",
+          "location": "Archive",
+          "new": "Archive",
+          "previous": "Downloads",
+          "rule": "preference",
+          "sequence": 21,
+          "timestamp": 12,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Archive",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 50,
+          "timestamp": 182,
+          "trigger": "formation"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-000000000013",
+          "location": "Archive",
+          "new": "baby",
+          "previous": "absent",
+          "rule": "lifecycle",
+          "sequence": 70,
+          "timestamp": 388,
+          "trigger": "created"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-000000000013",
+          "location": "Downloads",
+          "new": "Downloads",
+          "previous": "Archive",
+          "rule": "preference",
+          "sequence": 79,
+          "timestamp": 430,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Downloads",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 130,
+          "timestamp": 576,
+          "trigger": "formation"
+        }
+      ]
+    },
+    {
+      "seed": 101,
+      "complete": true,
+      "events": [
+        {
+          "entity": "00000000-0000-4000-8000-000000000001",
+          "location": "Archive",
+          "new": "Archive",
+          "previous": "Downloads",
+          "rule": "preference",
+          "sequence": 15,
+          "timestamp": 12,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Archive",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 49,
+          "timestamp": 110,
+          "trigger": "formation"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-000000000010",
+          "location": "Archive",
+          "new": "baby",
+          "previous": "absent",
+          "rule": "lifecycle",
+          "sequence": 62,
+          "timestamp": 298,
+          "trigger": "created"
+        },
+        {
+          "entity": "00000000-0000-4000-8000-000000000010",
+          "location": "Downloads",
+          "new": "Downloads",
+          "previous": "Archive",
+          "rule": "preference",
+          "sequence": 82,
+          "timestamp": 428,
+          "trigger": "migration"
+        },
+        {
+          "entity": "nest",
+          "location": "Downloads",
+          "new": "nest",
+          "previous": "absent",
+          "rule": "nest",
+          "sequence": 99,
+          "timestamp": 494,
+          "trigger": "formation"
+        }
+      ]
+    }
+  ],
+  "HDiscriminatesOscillation": false,
+  "stability": "PARTIAL"
+}

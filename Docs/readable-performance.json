@@ -1,0 +1,42 @@
+[
+  {
+    "run": "1.7.1 development paused",
+    "realSeconds": 31.6,
+    "userSeconds": 0.18,
+    "systemSeconds": 0.05,
+    "singleCorePercent": 0.7278481012658228,
+    "maxRSSMiB": 101.25
+  },
+  {
+    "run": "1.7.1 development active",
+    "realSeconds": 30.23,
+    "userSeconds": 1.01,
+    "systemSeconds": 0.27,
+    "singleCorePercent": 4.234204432682765,
+    "maxRSSMiB": 120.421875
+  },
+  {
+    "run": "1.7.1 release paused",
+    "realSeconds": 31.57,
+    "userSeconds": 0.22,
+    "systemSeconds": 0.08,
+    "singleCorePercent": 0.9502692429521697,
+    "maxRSSMiB": 101.96875
+  },
+  {
+    "run": "1.7.1 release active",
+    "realSeconds": 30.2,
+    "userSeconds": 2.15,
+    "systemSeconds": 0.5,
+    "singleCorePercent": 8.774834437086094,
+    "maxRSSMiB": 119.09375
+  },
+  {
+    "run": "1.7.0 current-machine recheck active",
+    "realSeconds": 30.2,
+    "userSeconds": 1.89,
+    "systemSeconds": 0.51,
+    "singleCorePercent": 7.9470198675496695,
+    "maxRSSMiB": 120.53125
+  }
+]

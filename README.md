@@ -1,8 +1,16 @@
 # 旮旯乐园 · Gala Paradise
 
-macOS / Windows 离线卡通桌面生态。当前版本 **1.7.0 — Emergent World V0**。
+macOS / Windows 离线卡通桌面生态。当前版本 **1.7.1 — Readable Emergence**。
 
 这一版验证：写世界的规律，让玩家行为与环境自己组合出事件。不新增动物、成就或 UI 页面，不调用 AI、云服务或服务器。
+
+## 1.7.1 的实验结果
+
+迁移增加短暂承诺和逐渐衰减的惯性；强药剂、威胁、极端扰动与拥挤仍可打断。固定五种子的两小时实验，汇总短期往返率下降 **60.3%**，4/5 种子改善；seed 42 反而变差。近似等价的 H 场景两组均无往返，未验证该场景的改善，因此整体稳定性实验记为 **PARTIAL**。完整数据不挑选种子，见 [计划](Docs/readable-emergence-v1.7.1-plan.md) 与 [结果](Docs/readable-emergence-v1.7.1-results.md)。
+
+桌面现在投影真实的药剂淡痕、成巢前碎屑、迁移的离开／隐藏路程／延后到达、卵壳发育与同一位置孵出的幼体。空壳只来自真实孵化，短暂留在原处；视觉不制造住客、改变生态或安排故事。
+
+真人状态：**READY_FOR_HUMAN_VALIDATION**。代码和模拟通过不代表玩家已经理解因果。Windows native GUI not validated.
 
 ## 生态发生了什么变化
 
@@ -61,11 +69,11 @@ macOS / Windows 离线卡通桌面生态。当前版本 **1.7.0 — Emergent Wor
 ```sh
 ./build.sh
 'build/旮旯乐园.app/Contents/MacOS/GalaParadise' --integration-test
-python3 Tests/Simulation/run.py
+python3 Tests/Simulation/readable.py
 ./package-release.sh
 ```
 
-模拟器无需桌面权限。七份场景位于 `Tests/Simulation/scenarios/`，覆盖高频文件夹、闲置位置、药剂冲击、卵后恢复、不同性格、两小时与一天。JSON 可以指定 seed、duration（秒，2 的倍数）、rate、初始栖息地和个体、actions。动作包括 visit / food / chemical / friendly / threat / defeat / remove / clean；at 是相对本次运行的秒数，every 为重复间隔。恢复测试可传 initial 世界快照。
+模拟器无需桌面权限。九份场景位于 `Tests/Simulation/scenarios/`，覆盖高频文件夹、闲置位置、药剂冲击、卵后恢复、不同性格、两小时与一天。JSON 可以指定 seed、duration（秒，2 的倍数）、rate、初始栖息地和个体、actions。动作包括 visit / food / chemical / friendly / threat / defeat / remove / clean；at 是相对本次运行的秒数，every 为重复间隔。恢复测试可传 initial 世界快照。
 
 ```sh
 build/world-sim Tests/Simulation/scenarios/C-chemical.json build/chemical.json
@@ -80,6 +88,21 @@ build/toolchain/dotnet/dotnet Tests/Simulation/bin/Release/net10.0/Simulation.dl
 
 - macOS 13+：Universal，Apple Silicon / Intel；Windows 10 22H2 / 11 x64：自带 .NET 运行时。
 - 收起后用 Mac 顶部图标或 Windows 托盘换工具；退出旧程序再打开新版。
-- 发布包：`releases/GalaParadise-1.7-macOS-Universal.zip`、`releases/GalaParadise-1.7-Windows-x64.zip`。
+- 发布包：`releases/GalaParadise-1.7.1-macOS-Universal.zip`、`releases/GalaParadise-1.7.1-Windows-x64.zip`。
 - Mac 存档：`~/Library/Application Support/GalaParadise/save.json`；Windows：`%LOCALAPPDATA%/GalaParadise/save.json`。旧 Mac habitat.json 只用于设置与初次迁移。
 - Windows 原生鼠标、DPI、资源管理器仍需真机测试；交叉构建与模型通过不等于 Windows UI 通过。未配置发行签名或 Mac 公证。
+
+## 隔离盲测（观察者使用）
+
+每次启动都会创建新的测试会话，不读取或覆盖正式存档。朋友包中双击「开始全新试玩.command」或「开始全新试玩.cmd」；不要把这份开发 README 展示给测试者。
+
+```sh
+# macOS：可与正式程序并行；每次都创建新会话
+open -n '旮旯乐园.app' --args --blind-playtest
+# Windows（终端或快捷方式参数）
+GalaParadise.exe --blind-playtest
+```
+
+会话保存在正常存档目录下的 `BlindPlaytests/<随机会话号>/`，内含隔离 save、observations.jsonl。正常启动仍沿用正式 save。日志合并写入（通常 30 秒与退出），记录种子、匿名位置代号、动作 ID、生态时间和真实事件；不记录名字、纸条、输入文字、按键、剪贴板、路径或文件内容。`--world-log` 在盲测中被禁用。日志只是本地观察材料，不上传。
+
+观察者使用 [简短开场与访谈](Docs/blind-playtest-guide.md)、[空白记录模板](Docs/blind-playtest-template.md)。测试期间不提示规则；仅处理无法启动或点击等操作障碍。旧正式存档、关系、伙伴、纸条与年龄保留，新迁移历史字段默认未知，不补离线进度。

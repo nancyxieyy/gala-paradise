@@ -89,6 +89,7 @@ extension Paradise {
   let observed=state.residents[i];state.life?.observe(observed,now);syncPanels()
  }
  func lifeAction(_ action:String,id:UUID?,text:String,note:String?,minutes:Double=25,inPlace:Bool=false){
+  blindSession?.action(action,entity:id?.uuidString ?? "",time:state.world?.time ?? 0)
   state.ensureLife();let now=Date().timeIntervalSince1970
   let administrative=["stash","return","done","delete","share","cancel"]
   if (paused || state.focusing) && !administrative.contains(action) {tell("先结束专注或继续桌宠，再进行动物互动");return}
@@ -147,12 +148,17 @@ extension Paradise {
   tell(result);syncPanels();save();rebuildMenu()
  }
 }
+final class TraceCrumbView:NSView {
+ weak var engine:Paradise?
+ override func draw(_ dirtyRect:NSRect){for n in 0..<5 {oval(NSRect(x:5+n*7,y:5+n%3*3,width:4,height:3),color(0xA7814C,0.7))}}
+ override func mouseDown(with event:NSEvent){engine?.lifeAction("explore",id:nil,text:"",note:nil)}
+}
 extension Paradise {
  func syncTrace(){
   guard !isTestRun else{return}
-  if state.life?.traceReady==true && !paused && !state.quiet && !state.focusing,let f=NSScreen.main?.visibleFrame {
-   if tracePanel==nil {let p=PetPanel(contentRect:NSRect(x:f.maxX-145,y:f.minY+40,width:115,height:34),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false);p.isOpaque=false;p.backgroundColor = .clear;p.level = .floating;p.hasShadow=false;p.isReleasedWhenClosed=false;p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary];p.contentView=ActionButton("👣 细小碎屑",frame:NSRect(x:0,y:0,width:115,height:34)){[weak self] in self?.lifeAction("explore",id:nil,text:"",note:nil);self?.showLife()};tracePanel=p}
-   tracePanel?.setFrameOrigin(NSPoint(x:f.maxX-145,y:f.minY+40));tracePanel?.orderFrontRegardless()
-  } else {tracePanel?.orderOut(nil)}
+  if !paused && !state.quiet && !state.focusing,let h=state.world?.habitats.first(where:{$0.nest && $0.exposed && !$0.discovered}) {
+   if tracePanel==nil {let p=PetPanel(contentRect:NSRect(x:0,y:0,width:44,height:24),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false);p.isOpaque=false;p.backgroundColor = .clear;p.level = .floating;p.hasShadow=false;p.isReleasedWhenClosed=false;p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary];let v=TraceCrumbView(frame:NSRect(x:0,y:0,width:44,height:24));v.engine=self;p.contentView=v;tracePanel=p}
+   let point=habitatAnchor(h.id);tracePanel?.setFrameOrigin(NSPoint(x:point.x+60,y:point.y+4));if tracePanel?.isVisible != true {tracePanel?.orderFrontRegardless()}
+  } else if tracePanel?.isVisible==true {tracePanel?.orderOut(nil)}
  }
 }

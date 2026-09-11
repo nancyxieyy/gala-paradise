@@ -31,7 +31,7 @@ extension Paradise {
   if let index=state.residents.firstIndex(where:{$0.id==id}) {state.residents[index].holdUntil=Date().timeIntervalSince1970+1.5}
  }
  @objc func animalChoice(_ item:NSMenuItem){guard let a=item.representedObject as? [String],let id=UUID(uuidString:a[0]),let r=state.residents.first(where:{$0.id==id}) else{return};let action=a[1]
-  if action=="leave" {if let i=state.residents.firstIndex(where:{$0.id==id}) {state.residents[i].holdUntil=0;visits[id]?.deadline=Date().timeIntervalSince1970};showReaction("好啦，去玩吧～",for:r);return}
+  if action=="leave" {blindSession?.action("leave",entity:id.uuidString,time:state.world?.time ?? 0);if let i=state.residents.firstIndex(where:{$0.id==id}) {state.residents[i].holdUntil=0;visits[id]?.deadline=Date().timeIntervalSince1970};showReaction("好啦，去玩吧～",for:r);return}
   var text=""
   if action=="name" {let alert=NSAlert();alert.messageText="给它起个名字";alert.informativeText="它会记住这个名字。";let field=NSTextField(frame:NSRect(x:0,y:0,width:250,height:28));field.stringValue=state.life?.bonds[id.uuidString.lowercased()]?.name ?? "";alert.accessoryView=field;alert.addButton(withTitle:"就叫这个");alert.addButton(withTitle:"再想想");alert.window.initialFirstResponder=field;guard alert.runModal() == .alertFirstButtonReturn else{return};text=field.stringValue}
   lifeAction(action,id:id,text:text,note:nil,inPlace:true)

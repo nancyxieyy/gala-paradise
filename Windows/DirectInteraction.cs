@@ -18,7 +18,7 @@ sealed partial class Paradise {
   var r=Game.State.Residents.Find(r=>r.Id==id);if(r==null||Game.Paused||Game.State.Life.FocusRemaining>0)return;if(!r.Live){Use(id);return;}r.HoldUntil=Now+60;
   var menu=new ContextMenuStrip();Game.State.Life.Bonds.TryGetValue(id.ToString(),out var b);menu.Items.Add($"{(b?.Name.Length>0?b.Name:r.Kind==Kind.Mouse?"小老鼠":r.Kind==Kind.CatPaw?"猫咪":"小旮杂")}").Enabled=false;
   void Add(string title,string action){menu.Items.Add(title,null,(s,e)=>{
-   if(action=="leave"){r.HoldUntil=0;r.ExitAt=Now;React(r,"好啦，去玩吧～");return;}
+   if(action=="leave"){Game.Blind?.Action("leave",id.ToString(),time:Game.State.World?.time??0);r.HoldUntil=0;r.ExitAt=Now;React(r,"好啦，去玩吧～");return;}
    string text="";if(action=="name"){var name=Ask("给它起个名字","它会记住这个名字。",b?.Name??"");if(name==null)return;text=name;}
    Action(()=>Game.LifeAction(action,id,text,null,inPlace:true));r.ReactionUntil=Now+.55;r.HoldUntil=Now+1.5;string msg=Game.Message;if((action=="pet"||action=="feed")&&msg.Contains("稍等"))msg=action=="pet"?"还想被摸摸 ♡":"还在嚼呢，嚼嚼嚼～";React(r,msg);
   });}

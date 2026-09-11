@@ -49,7 +49,7 @@ struct GameState: Codable {
         ensureLife()
         let kind = residents[i].kind
         defer { reconcileWorld() }
-        if tool == .poison && residents[i].live && !residents[i].friend && !protected(residents[i]) {worldSignal("threat",id:id);worldSignal("chemical",id:id);return "呲——泡沫留下了，看看它往哪儿躲"}
+        if tool == .poison && residents[i].live && !residents[i].friend && !protected(residents[i]) {worldSignal("threat",id:id);worldSignal("chemical",id:id);return "呲——"}
         if residents[i].live {worldSignal(tool == .pinch && (residents[i].friend || protected(residents[i])) ? "friendly" : "threat",id:id)}
         if protected(residents[i]) || residents[i].friend {return playfulUse(tool,on:id,now:now)}
         if residents[i].live {

@@ -1,0 +1,99 @@
+{
+  "seed": 42,
+  "duration": 1800,
+  "habitats": [
+    {
+      "id": "Downloads",
+      "food": 0.7,
+      "nestability": 0.8
+    },
+    {
+      "id": "Archive",
+      "food": 0.7,
+      "nestability": 0.95
+    },
+    {
+      "id": "edge",
+      "food": 0.2,
+      "nestability": 0.5
+    }
+  ],
+  "actions": [
+    {
+      "at": 0,
+      "kind": "chemical",
+      "location": "Downloads"
+    },
+    {
+      "at": 120,
+      "kind": "defeat",
+      "entity": "00000000-0000-4000-8000-000000000001",
+      "location": "Downloads"
+    },
+    {
+      "at": 120,
+      "kind": "defeat",
+      "entity": "00000000-0000-4000-8000-000000000002",
+      "location": "Downloads"
+    },
+    {
+      "at": 120,
+      "kind": "defeat",
+      "entity": "00000000-0000-4000-8000-000000000003",
+      "location": "Downloads"
+    },
+    {
+      "at": 120,
+      "kind": "defeat",
+      "entity": "00000000-0000-4000-8000-000000000004",
+      "location": "Downloads"
+    },
+    {
+      "at": 120,
+      "kind": "defeat",
+      "entity": "00000000-0000-4000-8000-000000000005",
+      "location": "Downloads"
+    },
+    {
+      "at": 120,
+      "kind": "defeat",
+      "entity": "00000000-0000-4000-8000-000000000006",
+      "location": "Downloads"
+    }
+  ],
+  "name": "I-recovery",
+  "creatures": [
+    {
+      "location": "Downloads",
+      "cooldown": 300
+    },
+    {
+      "location": "Downloads",
+      "cooldown": 300
+    },
+    {
+      "location": "Downloads",
+      "cooldown": 300
+    },
+    {
+      "location": "Downloads",
+      "cooldown": 300
+    },
+    {
+      "location": "Downloads",
+      "cooldown": 300
+    },
+    {
+      "location": "Downloads",
+      "cooldown": 300
+    },
+    {
+      "stage": "egg",
+      "location": "Downloads"
+    },
+    {
+      "stage": "egg",
+      "location": "Downloads"
+    }
+  ]
+}

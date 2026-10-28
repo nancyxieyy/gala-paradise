@@ -22,13 +22,24 @@ if (input.initial == null)
 }
 var events = new List<WorldEvent>();
 var samples = new List<object>();
+var capacityEvidence = new CapacityEvidence();
+capacityEvidence.Observe(w, 0);
+int removalInterval = input.removeCorpsesEvery ?? 0;
+int nextCorpseRemoval = removalInterval > 0 ? removalInterval : int.MaxValue;
 var timer = Stopwatch.StartNew();
 for (int t = 0; t < input.duration; t += 2)
 {
+    if (removalInterval > 0 && t >= nextCorpseRemoval)
+    {
+        foreach (var c in w.creatures.Where(c => c.stage == "corpse"))
+            w.Send(new("remove", c.location, c.id));
+        nextCorpseRemoval += ((t - nextCorpseRemoval) / removalInterval + 1) * removalInterval;
+    }
     foreach (var a in input.actions.Where(a => t >= a.at && (a.every > 0 ? (t - a.at) % a.every == 0 : t == a.at)))
         w.Send(new(a.kind, a.location, a.entity, a.amount));
     w.recentEvents.Clear();
     w.Step(input.rate);
+    capacityEvidence.Observe(w, 2);
     events.AddRange(w.recentEvents);
     if (t % 60 == 0)
         samples.Add(new
@@ -62,7 +73,8 @@ var result = new
         elapsedMs = timer.Elapsed.TotalMilliseconds
     },
     unexpectedInteractions = events.Where(e => e.trigger is "migration" or "formation" or
-    "passing resident").ToArray()
+    "passing resident").ToArray(),
+    capacityEvidence
 };
 File.WriteAllText(args[1], JsonSerializer.Serialize(result, options));
 Console.WriteLine($"{input.name}: population={w.creatures.Count(c=>c.roach)} eggs={w.creatures.Count(c=>c.stage=="egg")} nests={w.habitats.Count(h=>h.nest)} deaths={w.deaths} migrations={w.migrations} {timer.Elapsed.TotalMilliseconds:F1}ms");
@@ -73,6 +85,7 @@ public class Scenario
     public ulong seed { get; set; } = 42;
     public int duration { get; set; } = 1800;
     public double rate { get; set; } = 1;
+    public int? removeCorpsesEvery { get; set; }
     public World? initial
     {
         get; set;
@@ -117,4 +130,44 @@ public class InputAction
     public string location { get; set; } = "edge";
     public string entity { get; set; } = "";
     public double amount { get; set; } = 1;
+}
+public class CapacityObservation
+{
+    public double firstTime { get; set; }
+    public double lastTime { get; set; }
+    // total, living, eggs, mature eggs, corpses, stains, nests
+    public int[] counts { get; set; } = [];
+}
+public class CapacityEvidence
+{
+    public double firstAt32 { get; set; } = -1;
+    public double matureEggSeconds { get; set; }
+    public double matureEggWallSeconds { get; set; }
+    public List<CapacityObservation> observations { get; set; } = [];
+
+    public void Observe(World world, double dt)
+    {
+        int mature = world.creatures.Count(c => c.stage == "egg" && c.age >= 180);
+        int[] counts = [
+            world.creatures.Count,
+            world.creatures.Count(c => c.roach),
+            world.creatures.Count(c => c.stage == "egg"),
+            mature,
+            world.creatures.Count(c => c.stage == "corpse"),
+            world.creatures.Count(c => c.stage == "stain"),
+            world.habitats.Count(h => h.nest)
+        ];
+        if (firstAt32 < 0 && counts[0] >= 32)
+            firstAt32 = world.time;
+        matureEggSeconds += mature * dt;
+        if (mature > 0)
+            matureEggWallSeconds += dt;
+        if (observations.Count > 0 && observations[^1].counts.SequenceEqual(counts))
+            observations[^1].lastTime = world.time;
+        else
+            observations.Add(new CapacityObservation
+            {
+                firstTime = world.time, lastTime = world.time, counts = counts
+            });
+    }
 }

@@ -157,6 +157,10 @@ def main():
         if summary:
             with open(summary, "a") as handle:
                 handle.write(report)
+            # Also as an annotation, so the report is readable through the API.
+            escaped = report.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+            level = "warning" if differing else "notice"
+            print(f"::{level} title=Ecology behaviour vs base::{escaped}")
 
         if args.require_identical and differing:
             sys.exit(1)

@@ -29,12 +29,13 @@ jobs:
           swift --version
           dotnet --version
           python3 --version
+          echo "::notice title=Linux toolchain::$(swift --version 2>&1 | head -1) / dotnet $(dotnet --version)"
       - name: Windows gameplay model tests (CoreTests)
-        run: dotnet run --project Tests/CoreTests -c Release
+        run: .github/scripts/report.sh CoreTests dotnet run --project Tests/CoreTests -c Release
       - name: Swift / C# ecology parity, replay and save-resume
-        run: python3 Tests/Simulation/run.py
+        run: .github/scripts/report.sh Parity python3 Tests/Simulation/run.py
       - name: Ecology behaviour vs base
-        run: python3 Tests/Simulation/diff_base.py
+        run: .github/scripts/report.sh BehaviourDiff python3 Tests/Simulation/diff_base.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -52,9 +53,10 @@ jobs:
         run: |
           sw_vers
           swiftc --version
+          echo "::notice title=macOS toolchain::$(sw_vers -productVersion) / $(swiftc --version 2>&1 | head -1)"
       - name: Build and run Swift model self-test
-        run: ./build.sh
+        run: .github/scripts/report.sh MacBuild ./build.sh
       - name: Native integration test (informational)
         continue-on-error: true
         timeout-minutes: 5
-        run: "'build/旮旯乐园.app/Contents/MacOS/GalaParadise' --integration-test"
+        run: .github/scripts/report.sh Integration 'build/旮旯乐园.app/Contents/MacOS/GalaParadise' --integration-test

@@ -1,8 +1,17 @@
 name: Windows beta validation
-on: [workflow_dispatch]
+on:
+  push:
+    branches: [main, 'codex/**', 'claude/**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   package:
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4

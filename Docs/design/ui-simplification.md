@@ -1,6 +1,6 @@
 # 界面精简（草案，待负责人确认）
 
-> 状态：草案 · 2026-10-28 · Claude
+> 状态：已确认（D10）· 2026-10-28 · Claude
 > 目标：一眼就知道什么是什么；不用学；看着不烦。
 > 画布原型（5 个画面）：https://claude.ai/artifact/HEomta5jMHHqXxESBL5RQq（仅负责人可见）
 

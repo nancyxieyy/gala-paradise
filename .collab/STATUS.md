@@ -8,11 +8,11 @@
 | 001 | [代码格式化，不改行为](tasks/001-readable-formatting.md) | Codex | done（PR #2） | `codex/001-readable-formatting` |
 | 002 | [验证尸体/污渍挤占容量](tasks/002-residue-capacity-evidence.md) | Codex | done（PR #4） | `codex/002-residue-capacity-evidence` |
 | 003 | [残留不占容量 + 尸体风干成食物 + 卵休眠](tasks/003-residue-decay-and-capacity.md) | Codex | ready | `codex/003-residue-decay` |
-| 004 | 界面精简（Q4） | Claude 出设计，你确认 | 草案 `Docs/design/ui-simplification.md` | — |
-| 005 | 不打扰：忙时藏、闲时出（D6、D8） | Claude 先出设计 | 待 004 确认后 | — |
-| 006 | 旮旯日报（D7、D9） | Claude 先出设计 | 待 004 确认后 | — |
+| 004 | [界面精简](tasks/004-ui-simplification.md) | Codex | ready（003 合并后开始） | `codex/004-ui-simplification` |
+| 005 | 不打扰：忙时藏、闲时出（D6、D8） | Claude 先出设计 | 设计中 | — |
+| 006 | 旮旯日报（D7、D9） | Claude 先出设计 | 设计中 | — |
 | 007+ | 遗传与进化（P3） | — | 第二批 | — |
 
 ## 给 Codex
 
-做 003。
+先做 003，合并后做 004。一次一个任务。

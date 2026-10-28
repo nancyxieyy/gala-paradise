@@ -32,6 +32,8 @@ jobs:
           echo "::notice title=Linux toolchain::$(swift --version 2>&1 | head -1) / dotnet $(dotnet --version)"
       - name: Windows gameplay model tests (CoreTests)
         run: .github/scripts/report.sh CoreTests dotnet run --project Tests/CoreTests -c Release
+      - name: Source line width
+        run: .github/scripts/report.sh Style python3 Tests/style_check.py
       - name: Swift / C# ecology parity, replay and save-resume
         run: .github/scripts/report.sh Parity python3 Tests/Simulation/run.py
       - name: Ecology behaviour vs base

@@ -1,13 +1,120 @@
 using Gala;
 using System.Text.Json;
 using System.Diagnostics;
-var options=new JsonSerializerOptions{WriteIndented=true,PropertyNameCaseInsensitive=true};
-var input=JsonSerializer.Deserialize<Scenario>(File.ReadAllText(args[0]),options)!;
-var w=input.initial??new World(input.seed);if(input.initial==null){w.migrationMode=input.migrationMode;w.habitats=input.habitats;foreach(var c in input.creatures){string id=w.Add(c.stage,c.location,c.id.Length==0?null:c.id,false);var added=w.creatures.Find(x=>x.id==id)!;if(c.boldness.HasValue)added.boldness=c.boldness.Value;if(c.cooldown.HasValue)added.cooldown=c.cooldown.Value;added.protection=c.protection;added.age=c.age;}}
-var events=new List<WorldEvent>();var samples=new List<object>();var timer=Stopwatch.StartNew();
-for(int t=0;t<input.duration;t+=2){foreach(var a in input.actions.Where(a=>t>=a.at&&(a.every>0?(t-a.at)%a.every==0:t==a.at)))w.Send(new(a.kind,a.location,a.entity,a.amount));w.recentEvents.Clear();w.Step(input.rate);events.AddRange(w.recentEvents);if(t%60==0)samples.Add(new{eggAge=w.creatures.Where(c=>c.stage=="egg").Select(c=>c.age).DefaultIfEmpty(0).Max(),juveniles=w.creatures.Count(c=>c.stage=="baby"),time=w.time,population=w.creatures.Count(c=>c.roach),eggs=w.creatures.Count(c=>c.stage=="egg"),nests=w.habitats.Count(h=>h.nest),w.deaths,w.migrations});}
-timer.Stop();var result=new{world=w,eventLog=events,samples,metrics=new{population=w.creatures.Count(c=>c.roach),eggs=w.creatures.Count(c=>c.stage=="egg"),nests=w.habitats.Count(h=>h.nest),w.deaths,w.migrations,w.births,elapsedMs=timer.Elapsed.TotalMilliseconds},unexpectedInteractions=events.Where(e=>e.trigger is "migration" or "formation" or "passing resident").ToArray()};
-File.WriteAllText(args[1],JsonSerializer.Serialize(result,options));Console.WriteLine($"{input.name}: population={w.creatures.Count(c=>c.roach)} eggs={w.creatures.Count(c=>c.stage=="egg")} nests={w.habitats.Count(h=>h.nest)} deaths={w.deaths} migrations={w.migrations} {timer.Elapsed.TotalMilliseconds:F1}ms");
-public class Scenario{public string migrationMode{get;set;}="treatment";public string name{get;set;}="";public ulong seed{get;set;}=42;public int duration{get;set;}=1800;public double rate{get;set;}=1;public World? initial{get;set;}public List<WorldHabitat> habitats{get;set;}=[new(),new(){id="quiet-edge"}];public List<InitialCreature> creatures{get;set;}=[];public List<InputAction> actions{get;set;}=[];}
-public class InitialCreature{public string id{get;set;}="";public string stage{get;set;}="adult";public string location{get;set;}="edge";public double? boldness{get;set;}public double? cooldown{get;set;}public double age{get;set;}public bool protection{get;set;}}
-public class InputAction{public int at{get;set;}public int every{get;set;}public string kind{get;set;}="visit";public string location{get;set;}="edge";public string entity{get;set;}="";public double amount{get;set;}=1;}
+var options = new JsonSerializerOptions { WriteIndented = true, PropertyNameCaseInsensitive = true };
+var input = JsonSerializer.Deserialize<Scenario>(File.ReadAllText(args[0]), options)!;
+var w = input.initial ?? new World(input.seed);
+if (input.initial == null)
+{
+    w.migrationMode = input.migrationMode;
+    w.habitats = input.habitats;
+    foreach (var c in input.creatures)
+    {
+        string id = w.Add(c.stage, c.location, c.id.Length == 0 ? null : c.id, false);
+        var added = w.creatures.Find(x => x.id == id)!;
+        if (c.boldness.HasValue)
+            added.boldness = c.boldness.Value;
+        if (c.cooldown.HasValue)
+            added.cooldown = c.cooldown.Value;
+        added.protection = c.protection;
+        added.age = c.age;
+    }
+}
+var events = new List<WorldEvent>();
+var samples = new List<object>();
+var timer = Stopwatch.StartNew();
+for (int t = 0; t < input.duration; t += 2)
+{
+    foreach (var a in input.actions.Where(a => t >= a.at && (a.every > 0 ? (t - a.at) % a.every == 0 : t == a.at)))
+        w.Send(new(a.kind, a.location, a.entity, a.amount));
+    w.recentEvents.Clear();
+    w.Step(input.rate);
+    events.AddRange(w.recentEvents);
+    if (t % 60 == 0)
+        samples.Add(new
+        {
+            eggAge = w.creatures.Where(c => c.stage == "egg").Select(c => c.age).DefaultIfEmpty(0).Max(),
+            juveniles = w.creatures.Count(c => c.stage == "baby"),
+            time = w.time,
+            population = w.creatures.Count(c => c.roach),
+            eggs = w.creatures.Count(c => c.stage == "egg"),
+            nests = w.habitats.Count(h => h.nest),
+            w.deaths,
+            w.migrations
+        });
+}
+timer.Stop();
+var result = new
+{
+    world = w,
+    eventLog = events,
+    samples,
+    metrics = new
+    {
+        population =
+    w.creatures.Count(c => c.roach),
+        eggs = w.creatures.Count(c => c.stage == "egg"),
+        nests =
+    w.habitats.Count(h => h.nest),
+        w.deaths,
+        w.migrations,
+        w.births,
+        elapsedMs = timer.Elapsed.TotalMilliseconds
+    },
+    unexpectedInteractions = events.Where(e => e.trigger is "migration" or "formation" or
+    "passing resident").ToArray()
+};
+File.WriteAllText(args[1], JsonSerializer.Serialize(result, options));
+Console.WriteLine($"{input.name}: population={w.creatures.Count(c=>c.roach)} eggs={w.creatures.Count(c=>c.stage=="egg")} nests={w.habitats.Count(h=>h.nest)} deaths={w.deaths} migrations={w.migrations} {timer.Elapsed.TotalMilliseconds:F1}ms");
+public class Scenario
+{
+    public string migrationMode { get; set; } = "treatment";
+    public string name { get; set; } = "";
+    public ulong seed { get; set; } = 42;
+    public int duration { get; set; } = 1800;
+    public double rate { get; set; } = 1;
+    public World? initial
+    {
+        get; set;
+    }
+    public List<WorldHabitat> habitats { get; set; } = [new(), new() { id = "quiet-edge" }];
+    public List<InitialCreature> creatures { get; set; } = [];
+    public List<InputAction> actions { get; set; } = [];
+}
+public class InitialCreature
+{
+    public string id { get; set; } = "";
+    public string stage { get; set; } = "adult";
+    public string location { get; set; } = "edge";
+    public double? boldness
+    {
+        get; set;
+    }
+    public double? cooldown
+    {
+        get; set;
+    }
+    public double age
+    {
+        get; set;
+    }
+    public bool protection
+    {
+        get; set;
+    }
+}
+public class InputAction
+{
+    public int at
+    {
+        get; set;
+    }
+    public int every
+    {
+        get; set;
+    }
+    public string kind { get; set; } = "visit";
+    public string location { get; set; } = "edge";
+    public string entity { get; set; } = "";
+    public double amount { get; set; } = 1;
+}

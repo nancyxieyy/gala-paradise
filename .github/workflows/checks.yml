@@ -45,10 +45,14 @@ jobs:
 
   mac:
     name: macOS build + self-test
-    runs-on: macos-15
+    # The project is developed with Swift 6.3 (Xcode 26); older compilers reject some expressions.
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
       - name: Toolchain versions
         run: |
           sw_vers

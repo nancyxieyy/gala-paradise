@@ -1,0 +1,66 @@
+name: Checks
+on:
+  push:
+    branches: [main, 'codex/**', 'claude/**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  model-linux:
+    name: Ecology model (Linux)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Toolchain versions
+        run: |
+          swift --version
+          dotnet --version
+          python3 --version
+          echo "::notice title=Linux toolchain::$(swift --version 2>&1 | head -1) / dotnet $(dotnet --version)"
+      - name: Windows gameplay model tests (CoreTests)
+        run: .github/scripts/report.sh CoreTests dotnet run --project Tests/CoreTests -c Release
+      - name: Swift / C# ecology parity, replay and save-resume
+        run: .github/scripts/report.sh Parity python3 Tests/Simulation/run.py
+      - name: Ecology behaviour vs base
+        run: .github/scripts/report.sh BehaviourDiff python3 Tests/Simulation/diff_base.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulation-output
+          path: build/simulation/
+          retention-days: 14
+
+  mac:
+    name: macOS build + self-test
+    # The project is developed with Swift 6.3 (Xcode 26); older compilers reject some expressions.
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Toolchain versions
+        run: |
+          sw_vers
+          swiftc --version
+          echo "::notice title=macOS toolchain::$(sw_vers -productVersion) / $(swiftc --version 2>&1 | head -1)"
+      - name: Build and run Swift model self-test
+        run: .github/scripts/report.sh MacBuild ./build.sh
+      - name: Native integration test (informational)
+        continue-on-error: true
+        timeout-minutes: 5
+        run: .github/scripts/report.sh Integration 'build/旮旯乐园.app/Contents/MacOS/GalaParadise' --integration-test

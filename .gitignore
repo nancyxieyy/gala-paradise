@@ -1,11 +1,26 @@
-build/
+# Local builds, release packages, and downloaded toolchains
+/build/
+/releases/
+
+# macOS files and generated artwork
 .DS_Store
-*.log
 Resources/AppIcon.iconset/
+
+# .NET build intermediates
 Windows/bin/
 Windows/obj/
 Tests/CoreTests/bin/
 Tests/CoreTests/obj/
-releases/
 Tests/Simulation/bin/
 Tests/Simulation/obj/
+
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+
+# Local configuration and logs
+.env
+.env.*
+!.env.example
+*.log

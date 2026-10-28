@@ -17,7 +17,7 @@
 2. **Codex 实现**：从 `main` 拉出 `codex/NNN-*` 分支；实现；在任务文件末尾写「实现记录」；push 并开 PR；STATUS 改为 `review`（在分支里改即可）。
 3. **Claude 审查**：拉取分支，看 diff、CI 结果和行为差异报告；把意见写进 `.collab/reviews/NNN.md`，push 到同一分支。
    - 需要修改：STATUS 标 `changes-requested`，Codex 拉取后按意见改，再次 push，回到第 3 步。
-   - 通过：STATUS 标 `done`，Claude 合并到 `main`（squash）。
+   - 通过：Claude 在 PR 里写「审查通过，可以合并」，由你合并到 `main`（squash）；合并后 STATUS 标 `done`。
 4. 涉及产品取舍的问题（数值手感、要不要某个玩法），Claude 写进 `decisions.md` 并标 `待你决定`，任务暂停在 `blocked`。
 
 ## 状态

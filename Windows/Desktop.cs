@@ -63,7 +63,8 @@ sealed class PetWindow : Form
                     4 : 0;
                 Art.Bug(g, new((ClientSize.Width - size) / 2 + bounce, ClientSize.Height - size, size, size),
                     Resident.Kind, Resident.Kind == Kind.CatPaw ? now - Resident.Born : now,
-                    Resident.FlyingUntil > now, Resident.Direction, Resident.EggProgress);
+                    Resident.FlyingUntil > now, Resident.Direction, Resident.EggProgress,
+                    eggDormant: Resident.EggDormant, residueProgress: Resident.ResidueProgress);
                 if (Resident.CarryUntil > now)
                 {
                     Art.Round(g, new(ClientSize.Width / 2, ClientSize.Height - 28, 28, 23), Art.Cream, 3);
@@ -87,7 +88,11 @@ sealed class PetWindow : Form
             var pos = new NativePoint((int)Resident.X, (int)Resident.Y);
             var size = new NativeSize(ClientSize.Width, ClientSize.Height);
             var source = new NativePoint(0, 0);
-            var blend = new Blend { Alpha = 255, Format = 1 };
+            var blend = new Blend
+            {
+                Alpha = (byte)(255 * (Resident.Kind == Kind.Corpse ? 1 - .65 * Resident.ResidueProgress : 1)),
+                Format = 1
+            };
             LastRenderOK = UpdateLayeredWindow(Handle, screenDC, ref pos, ref size, mem, ref source, 0, ref blend, 2);
         }
         finally

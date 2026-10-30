@@ -55,6 +55,8 @@ public class WorldCreature
     public string intent { get; set; } = "idle";
     public string locationMemory { get; set; } = "edge";
     public string emergedFrom { get; set; } = "edge";
+    public double residueAge { get; set; }
+    public bool dormant { get; set; }
     public double lastMigrationTime { get; set; } = -1;
     public string previousLocation { get; set; } = "";
     public string originEgg { get; set; } = "";
@@ -123,6 +125,39 @@ public class RuleBasedWorldDirector : IWorldDirector
 }
 public class World
 {
+    public const double corpseDecay = 600;
+    public const double corpseFood = .25;
+    public const int residueCap = 24;
+    [System.Text.Json.Serialization.JsonIgnore]
+    public int EcologicalCount => creatures.Count(c => c.roach || c.stage == "egg");
+    public void LimitResidues()
+    {
+        while (creatures.Count(c => c.stage is "corpse" or "stain") > residueCap)
+        {
+            string stage = creatures.Any(c => c.stage == "corpse") ? "corpse" : "stain";
+            WorldCreature? oldest = null;
+            foreach (var c in creatures.Where(c => c.stage == stage))
+                if (oldest == null || c.residueAge > oldest.residueAge)
+                    oldest = c;
+            creatures.Remove(oldest!);
+            Event(oldest!.id, oldest.location, "evicted", oldest.stage, "removed", "residue-cap");
+        }
+    }
+    public void AdvanceResidues(double dt)
+    {
+        foreach (var c in creatures.Where(c => c.stage is "corpse" or "stain"))
+        {
+            c.residueAge += dt;
+            if (c.stage == "corpse")
+            {
+                var h = habitats[Habitat(c.location)];
+                h.food = Math.Min(1, h.food + corpseFood * dt / corpseDecay);
+            }
+        }
+        foreach (var c in creatures.Where(c => c.stage == "corpse" && c.residueAge >= corpseDecay))
+            Event(c.id, c.location, "decay", "corpse", "removed", "residue");
+        creatures.RemoveAll(c => c.stage == "corpse" && c.residueAge >= corpseDecay);
+    }
     public string migrationMode { get; set; } = "treatment";
     public int reversals
     {
@@ -223,7 +258,7 @@ public class World
     }
     public string Add(string stage, string location, string? id = null, bool record = true)
     {
-        if (creatures.Count >= capacity)
+        if (stage is not ("corpse" or "stain") && EcologicalCount >= capacity)
             return "";
         serial++;
         string identity = id ?? $"00000000-0000-4000-8000-{serial:x12}";
@@ -362,6 +397,8 @@ public class World
         revision++;
         visitorKind = "";
         ApplySignals();
+        LimitResidues();
+        AdvanceResidues(dt);
         var d = (director ?? new RuleBasedWorldDirector()).Parameters(this);
         visibleActivity *= .995;
         foreach (var h in habitats)
@@ -384,13 +421,16 @@ public class World
         for (int i = 0; i < count; i++)
         {
             var c = creatures[i];
+            if (!c.roach && c.stage != "egg")
+                continue;
             var h = habitats[Habitat(c.location)];
             if (c.stage == "egg")
             {
                 c.age += dt * rate * (h.chemical > .4 ? .4 : 1);
-                if (c.age >= 180 && creatures.Count < capacity - 1)
+                if (c.age >= 180 && EcologicalCount < capacity - 1)
                 {
                     c.stage = "hatched";
+                    c.dormant = false;
                     Event(c.id, h.id, "incubation", "egg", "hatched", "lifecycle");
                     for (int n = 0; n < 2; n++)
                     {
@@ -399,6 +439,13 @@ public class World
                         if (child != null)
                             child.originEgg = c.id;
                     }
+                }
+                if (c.stage == "egg" && c.age >= 180)
+                {
+                    c.age = 180;
+                    if (!c.dormant)
+                        Event(c.id, h.id, "dormant", "egg", "dormant", "lifecycle");
+                    c.dormant = true;
                 }
                 continue;
             }
@@ -476,7 +523,7 @@ public class World
             if (intent == "rest")
                 c.energy = Math.Min(1, c.energy + dt / 120);
             if (c.stage != "baby" && h.nest && h.stable > 60 && c.hunger < .8 && time >= c.cooldown &&
-                creatures.Count < Math.Min(32, capacity - 2) && Random() < dt * rate / 600 * c.fertility * d.pressure)
+                EcologicalCount < Math.Min(32, capacity - 2) && Random() < dt * rate / 600 * c.fertility * d.pressure)
             {
                 Add("egg", h.id);
                 c.cooldown = time + 120;
@@ -484,6 +531,7 @@ public class World
             }
         }
         creatures.RemoveAll(c => c.stage == "hatched");
+        LimitResidues();
         if (interactions > 0 && visibleActivity > .5)
         {
             if (time >= mouseCooldown && Random() < dt / 900 * Math.Min(2, visibleActivity / 4) * d.rarity)

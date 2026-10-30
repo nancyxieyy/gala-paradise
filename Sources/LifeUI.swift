@@ -430,7 +430,7 @@ extension Paradise {
             state.life!.award("coexist.first", now)
             result = "左侧留窝、右侧巡逻，伙伴错时来访；共居安排完成"
         case "adopt":
-            guard state.residents.count < maxResidents else {
+            guard state.populationCount < maxResidents else {
                 tell("住客已满，先保留领养码，腾出空间后再接收")
                 return
             }

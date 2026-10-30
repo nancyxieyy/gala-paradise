@@ -45,6 +45,8 @@ public partial class Game
             var c = w.creatures.Find(c => c.id == r.Id.ToString());
             if (c == null)
                 continue;
+            r.ResidueProgress = Math.Clamp(c.residueAge / World.corpseDecay, 0, 1);
+            r.EggDormant = c.dormant;
             r.EggProgress = c.stage == "egg" ? Math.Min(1, c.age / 180) : 0;
             if (!prior.ContainsKey(r.Id))
             {

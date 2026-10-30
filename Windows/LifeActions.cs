@@ -133,7 +133,7 @@ public partial class Game
                 Message = "左侧留窝、右侧巡逻，伙伴错时来访；共居安排完成";
                 return;
             case "adopt":
-                if (State.Residents.Count >= 38)
+                if (PopulationCount >= 38)
                 {
                     Message = "住客已满，先保留领养码";
                     return;

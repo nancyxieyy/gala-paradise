@@ -46,6 +46,8 @@ public class Resident
     {
         get; set;
     }
+    [JsonIgnore] public double ResidueProgress { get; set; }
+    [JsonIgnore] public bool EggDormant { get; set; }
     [JsonIgnore] public string EcologyIntent { get; set; } = "idle";
     [JsonIgnore]
     public double HoldUntil
@@ -248,7 +250,7 @@ public partial class Game
     }
     public Resident? Spawn(Kind k, double now, PointF? origin = null)
     {
-        if (State.Residents.Count >= 38)
+        if (k is not (Kind.Corpse or Kind.Stain) && PopulationCount >= 38)
             return null;
         var f = Screens[rng.Next(Screens.Length)];
         var r = new Resident
@@ -538,7 +540,8 @@ public partial class Game
             State.Progression.Owned = Enum.GetValues<Tool>().Where(t => State.Xp >= Rules.Unlock[(int)t]).ToList();
         State.Habitat.Rate = new[] { .25, 1.0, 3.0 }.Contains(State.Habitat.Rate) ? State.Habitat.Rate : 1;
         State.Life.FocusRemaining = 0;
-        State.Residents = State.Residents.Take(38).Where(r => float.IsFinite(r.X) && float.IsFinite(r.Y)).ToList();
+        State.Residents = State.Residents.Where(r => float.IsFinite(r.X) && float.IsFinite(r.Y)).ToList();
+        LimitPopulation();
         if (!Enum.IsDefined(State.Tool) || !Owns(State.Tool))
             State.Tool = Tool.Pinch;
         foreach (var r in State.Residents)

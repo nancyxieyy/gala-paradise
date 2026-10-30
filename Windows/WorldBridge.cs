@@ -43,6 +43,8 @@ public partial class Game
             {
                 if (c.stage != Life.KindName(r.Kind))
                 {
+                    c.residueAge = 0;
+                    c.dormant = false;
                     if (c.roach && !r.Live)
                         w.deaths++;
                     w.Event(c.id, c.location, "tool", c.stage, Life.KindName(r.Kind), "player");
@@ -53,6 +55,21 @@ public partial class Game
                 c.trust = State.Life.Bonds.GetValueOrDefault(r.Id.ToString())?.Trust ?? 0;
             }
         }
+        w.LimitResidues();
+        var retained = w.creatures.Select(c => c.id).ToHashSet();
+        State.Residents.RemoveAll(r => (r.Kind is Kind.Corpse or Kind.Stain) && !retained.Contains(r.Id.ToString()));
+    }
+    public int PopulationCount => State.Residents.Count(r => r.Live || r.Kind == Kind.Egg);
+    public void LimitPopulation()
+    {
+        int count = 0;
+        State.Residents = State.Residents.Where(r =>
+        {
+            if (r.Live || r.Kind == Kind.Egg)
+                return ++count <= 38;
+            return true;
+        }).ToList();
+        ReconcileWorld();
     }
     public void WorldSignal(string kind, Guid? id = null, string? location = null)
     {

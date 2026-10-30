@@ -49,7 +49,8 @@ static class Art
         g.DrawString(s, f, b, new RectangleF(x, y, width, size * 2), fmt);
     }
     public static void Bug(Graphics g, RectangleF box, Kind kind = Kind.Adult, double phase = 0, bool flying =
-        false, float facing = 1, double eggProgress = 0, bool emptyShell = false)
+        false, float facing = 1, double eggProgress = 0, bool emptyShell = false,
+        bool eggDormant = false, double residueProgress = 0)
     {
         if (kind is Kind.Mouse or Kind.CatPaw)
         {
@@ -89,7 +90,7 @@ static class Art
                 else if (emptyShell)
                     Line(g, Color.FromArgb(140, 140, 105, 72), 2, new(x + 3, y + 22), new(x + 8, y + 18),
                         new(x + 14, y + 23), new(x + 21, y + 18), new(x + 27, y + 22));
-                else
+                else if (!eggDormant)
                     Line(g, Color.FromArgb(140, 105, 72), 2, new(x + 15, y + 3), new(x + 9, y + 13), new(x + 19,
                         y + 21), new(x + 12, y + 32));
             }
@@ -120,7 +121,10 @@ static class Art
             body.AddBezier(117, 53, 135, 66, 125, 87, 116, 104);
             body.AddBezier(116, 104, 94, 127, 49, 122, 32, 110);
             body.CloseFigure();
-            using var bb = new SolidBrush(kind == Kind.Gold ? Color.FromArgb(233, 188, 62) : Brown);
+            double dry = Math.Clamp(residueProgress, 0, 1);
+            var brown = dead ? Color.FromArgb((int)(162 + 23 * dry), (int)(101 + 69 * dry),
+                (int)(61 + 79 * dry)) : Brown;
+            using var bb = new SolidBrush(kind == Kind.Gold ? Color.FromArgb(233, 188, 62) : brown);
             using var pen = new Pen(Ink, 3.5f);
             g.FillPath(bb, body);
             g.DrawPath(pen, body);
@@ -128,7 +132,8 @@ static class Art
             wing.AddBezier(78, 39, 101, 48, 112, 79, 106, 99);
             using var wp = new Pen(Color.FromArgb(118, 73, 47), 2.5f);
             g.DrawPath(wp, wing);
-            Oval(g, kind == Kind.Gold ? Color.FromArgb(213, 165, 40) : Color.FromArgb(152, 91, 56), 20, 64, 85, 53,
+            Oval(g, kind == Kind.Gold ? Color.FromArgb(213, 165, 40) :
+                (dead ? brown : Color.FromArgb(152, 91, 56)), 20, 64, 85, 53,
                 Ink, 3.5f);
             for (int n = 0; n < 2; n++)
             {

@@ -18,4 +18,3 @@
 | J-corpse-decay | **differs** | population 0 · eggs 0 · nests 0 · deaths 0 · migrations 0 · births 0 | event #0: base `(none)` / head `t=600 decay corpse→removed @edge` |
 
 10 scenario(s) differ.
-

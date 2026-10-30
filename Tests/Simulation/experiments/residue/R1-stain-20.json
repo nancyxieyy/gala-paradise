@@ -1,0 +1,138 @@
+{
+  "name": "R1-stain-20",
+  "seed": 42,
+  "duration": 7200,
+  "rate": 1,
+  "habitats": [
+    {
+      "id": "nest",
+      "food": 1,
+      "nestability": 0.9,
+      "nest": true,
+      "stable": 120
+    }
+  ],
+  "creatures": [
+    {
+      "stage": "adult",
+      "location": "nest"
+    },
+    {
+      "stage": "adult",
+      "location": "nest"
+    },
+    {
+      "stage": "adult",
+      "location": "nest"
+    },
+    {
+      "stage": "adult",
+      "location": "nest"
+    },
+    {
+      "stage": "adult",
+      "location": "nest"
+    },
+    {
+      "stage": "adult",
+      "location": "nest"
+    },
+    {
+      "stage": "adult",
+      "location": "nest"
+    },
+    {
+      "stage": "adult",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    },
+    {
+      "stage": "stain",
+      "location": "nest"
+    }
+  ],
+  "actions": [
+    {
+      "at": 0,
+      "every": 60,
+      "kind": "food",
+      "location": "nest",
+      "amount": 1
+    }
+  ]
+}

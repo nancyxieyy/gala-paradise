@@ -7,6 +7,7 @@
 - 本仓库由 Claude（规划、审查）和 Codex（写代码）协作，**只通过仓库交流**。流程见 `.collab/README.md`，当前进度见 `.collab/STATUS.md`。
 - 开工前：`git pull`，读 `.collab/STATUS.md`，找到分配给你的任务文件 `.collab/tasks/NNN-*.md`，严格按「要做 / 不做 / 验收标准」执行。
 - 在分支 `codex/NNN-简短名` 上工作，不要直接提交到 `main`。
+- **只推送到 GitHub**（`origin` = `https://github.com/nancyxieyy/gala-paradise`）。不要推送到 Codeup 或任何其他远程，也不要修改本机的 git 远程配置。
 - 完成后在任务文件末尾的「实现记录」里写：改了什么、为什么这样做、跑了哪些命令和结果、遗留问题。然后 push 分支并开 PR。
 - 任务里有不清楚或做不到的地方：不要自己扩大范围，写进任务文件的「问题」一节，push 后停下等回复。
 
@@ -21,7 +22,7 @@
 
 ## 构建与测试
 
-Linux（你的环境和 CI 都是 Linux）能跑的：
+任何平台都能跑的（CI 在 Linux 上跑）：
 
 ```sh
 dotnet run --project Tests/CoreTests -c Release      # Windows 端玩法模型测试（不依赖 WinForms）
@@ -30,7 +31,7 @@ python3 Tests/Simulation/diff_base.py --base origin/main   # 本分支与 main �
 python3 Tests/Simulation/diff_base.py --base origin/main --require-identical  # 纯重构时用：任何差异都失败
 ```
 
-只能在 macOS 跑的（CI 的 macOS 任务会跑）：
+需要 macOS 的（你在 Mac 上时可以本地跑；CI 的 macOS 任务也会跑）：
 
 ```sh
 ./build.sh                                            # 编译 + --self-test（Swift 模型测试）

@@ -60,7 +60,7 @@ func label(
 // Coordinates are in a flipped 140 × 140 space.
 func drawBug(
     in box: NSRect, kind: BugKind = .adult, phase: Double = 0, flying: Bool = false, facing: Double = 1,
-    eggProgress: Double = 0, emptyShell: Bool = false
+    eggProgress: Double = 0, emptyShell: Bool = false, eggDormant: Bool = false, residueProgress: Double = 0
 ) {
     if kind == .mouse || kind == .catPaw {
         drawFriend(in: box, cat: kind == .catPaw, phase: phase, facing: facing)
@@ -103,7 +103,7 @@ func drawBug(
                         NSPoint(x: x + 3, y: y + 22), NSPoint(x: x + 8, y: y + 18), NSPoint(x: x + 14, y: y + 23),
                         NSPoint(x: x + 21, y: y + 18), NSPoint(x: x + 27, y: y + 22)
                     ], color(0x8C6948, 0.55), 2)
-            } else {
+            } else if !eggDormant {
                 line(
                     [
                         NSPoint(x: x + 15, y: y + 3), NSPoint(x: x + 9, y: y + 13), NSPoint(x: x + 19, y: y + 21),
@@ -143,7 +143,9 @@ func drawBug(
         body.curve(
             to: NSPoint(x: 32, y: 110), controlPoint1: NSPoint(x: 94, y: 127), controlPoint2: NSPoint(x: 49, y: 122))
         body.close()
-        (kind == .gold ? color(0xE9BC3E) : color(0xA2653D)).setFill()
+        let dry = min(1, max(0, residueProgress))
+        let brown = dead ? color(0xA2653D).blended(withFraction: dry, of: color(0xB9AA8C))! : color(0xA2653D)
+        (kind == .gold ? color(0xE9BC3E) : brown).setFill()
         body.fill()
         ink.setStroke()
         body.lineWidth = 3.5
@@ -156,7 +158,9 @@ func drawBug(
         wing.lineWidth = 2.5
         wing.stroke()
         oval(
-            NSRect(x: 20, y: 64, width: 85, height: 53), kind == .gold ? color(0xD5A528) : color(0x985B38), stroke: ink,
+            NSRect(x: 20, y: 64, width: 85, height: 53),
+            kind == .gold ? color(0xD5A528) : (dead ? brown : color(0x985B38)),
+            stroke: ink,
             width: 3.5)
         for n in 0..<2 {
             let x = CGFloat(n) * 42 + 22

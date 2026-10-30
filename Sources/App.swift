@@ -143,10 +143,13 @@ final class PetView: NSView {
             clip.addClip()
         }
         let bounce = (r.reactionUntil ?? 0) > now ? sin(((r.reactionUntil ?? now) - now) * 32) * 4 : 0
+        let model = e.state.world?.creatures.first { $0.id == id.uuidString.lowercased() }
         drawBug(
             in: NSRect(x: (bounds.width - size) / 2 + bounce, y: bounds.height - size, width: size, height: size),
             kind: r.kind, phase: r.kind == .catPaw ? now - r.born : now, flying: r.flyingUntil > now,
-            facing: r.vx >= 0 ? 1 : -1, eggProgress: e.eggProgress[id] ?? 0)
+            facing: r.vx >= 0 ? 1 : -1, eggProgress: e.eggProgress[id] ?? 0,
+            eggDormant: model?.dormant ?? false,
+            residueProgress: (model?.residueAge ?? 0) / World.corpseDecay)
         if (r.carryUntil ?? 0) > now {
             paintRect(
                 NSRect(x: bounds.width / 2, y: bounds.height - 28, width: 28, height: 23), cream, radius: 3, stroke: ink
@@ -279,6 +282,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var isTestRun: Bool {
         CommandLine.arguments.contains("--benchmark-idle") || CommandLine.arguments.contains("--smoke")
             || CommandLine.arguments.contains("--render") || CommandLine.arguments.contains("--integration-test")
+            || CommandLine.arguments.contains("--residue-preview")
     }
     var window: NSWindow!
     var lastLifeRefresh: Double = 0
@@ -388,6 +392,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 self.renderPreview()
                 NSApp.terminate(nil)
             }
+        }
+        if CommandLine.arguments.contains("--residue-preview") {
+            startResiduePreview()
         }
         if CommandLine.arguments.contains("--integration-test") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -797,7 +804,8 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             })
     }
     func spawn(_ kind: BugKind, at point: NSPoint? = nil, taunt: Bool = false) {
-        guard state.residents.count < maxResidents, let screen = NSScreen.main else {
+        guard kind == .corpse || kind == .stain || state.populationCount < maxResidents,
+            let screen = NSScreen.main else {
             return
         }
         let f = screen.visibleFrame
@@ -1420,6 +1428,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             "PASS: menu icon/tool selection while minimized, restore, hidden population, blank interval, edge visit, exit, pause preserves hiding"
         )
         readableIntegrationTest()
+        residueIntegrationTest()
         print(
             "PASS: native overlays, folder signals without spawning, non-instant chemical, vacuum, extinction, pause/focus/cap"
         )
@@ -1445,7 +1454,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     try? data.write(to: backup, options: .atomic)
                 }
             }
-            state.residents = Array(state.residents.prefix(maxResidents))
+            state.limitPopulation()
             state.migrateProgression()
             screenChanged()
         } catch {
@@ -1482,5 +1491,76 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         } catch {
             message = "存档写入失败：\(error.localizedDescription)"
         }
+    }
+}
+
+// Isolated native acceptance run: real timer, no production save and no accelerated ecology.
+extension Paradise {
+    func startResiduePreview() {
+        state = GameState()
+        let f = NSScreen.main!.visibleFrame
+        let r = Resident(kind: .corpse, x: f.midX - 55, y: f.midY, born: Date().timeIntervalSince1970)
+        state.residents = [r]
+        state.world = World(seed: 7)
+        state.reconcileWorld()
+        syncPanels()
+        window.orderOut(nil)
+        let output = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+            .appendingPathComponent("build/task003/visual")
+        try! FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
+        for (label, delay) in [("fresh", 5.0), ("dry", 305.0), ("gone", 605.0)] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                let model = self.state.world!.creatures.first { $0.id == r.id.uuidString.lowercased() }
+                let image = NSImage(size: NSSize(width: 110, height: 110))
+                image.lockFocus()
+                if let panel = self.panels[r.id], let view = panel.contentView,
+                    let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
+                    view.cacheDisplay(in: view.bounds, to: bitmap)
+                    let layer = NSImage(size: view.bounds.size)
+                    layer.addRepresentation(bitmap)
+                    layer.draw(at: .zero, from: .zero, operation: .sourceOver, fraction: panel.alphaValue)
+                }
+                image.unlockFocus()
+                let bitmap = NSBitmapImageRep(data: image.tiffRepresentation!)!
+                try! bitmap.representation(using: .png, properties: [:])!
+                    .write(to: output.appendingPathComponent(label + ".png"))
+                let line = "\(label): worldTime=\(self.state.world!.time) age=\(model?.residueAge ?? -1) "
+                    + "alpha=\(self.panels[r.id]?.alphaValue ?? 0) residents=\(self.state.residents.count)\n"
+                let log = output.appendingPathComponent("observations.txt")
+                let previous = (try? String(contentsOf: log, encoding: .utf8)) ?? ""
+                try! (previous + line).write(to: log, atomically: true, encoding: .utf8)
+                if label == "gone" { NSApp.terminate(nil) }
+            }
+        }
+    }
+}
+
+extension Paradise {
+    func residueIntegrationTest() {
+        state = GameState()
+        state.world = World(seed: 19)
+        let r = Resident(kind: .corpse, x: 120, y: 120, born: 0)
+        state.residents = [r]
+        state.reconcileWorld()
+        syncPanels()
+        state.world!.creatures[0].residueAge = 300
+        projectReadable(state.residents, now: 0)
+        precondition(abs(panels[r.id]!.alphaValue - 0.675) < 1e-10)
+        let age = state.world!.creatures[0].residueAge
+        worldAccumulator = 2
+        paused = true
+        frameTime = Date().timeIntervalSince1970 - 0.1
+        tick()
+        precondition(state.world!.creatures[0].residueAge == age)
+        paused = false
+        state.life!.focusRemaining = 60
+        frameTime = Date().timeIntervalSince1970 - 0.1
+        tick()
+        precondition(state.world!.creatures[0].residueAge == age)
+        state.life!.focusRemaining = 0
+        frameTime = Date().timeIntervalSince1970 - 0.1
+        tick()
+        precondition(state.world!.creatures[0].residueAge == age + 2)
+        print("PASS: native corpse alpha from model, pause and focus freeze residue age")
     }
 }

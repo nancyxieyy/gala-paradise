@@ -6,6 +6,7 @@ evidence contains every cell's metrics, lossless count traces, event tallies,
 source hashes and deterministic output hashes. No product parameters change.
 """
 
+import argparse
 import collections
 import copy
 import hashlib
@@ -19,7 +20,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[4]
 SCENARIOS = Path(__file__).resolve().parent
-OUT = ROOT / "build/simulation/residue"
+OUT = ROOT / "build/simulation/residue-decay"
 SEEDS = [7, 19, 42, 73, 101]
 DOSES = [0, 10, 20, 26, 30]
 FIELDS = ("world", "eventLog", "samples", "capacityEvidence")
@@ -180,13 +181,13 @@ def framework_checks():
     safe, _ = run_pair(protected, "check-protected")
     require(metrics(safe)["corpses"] == 1, "existing protected remove rule")
 
-    # A full world with two mature eggs cannot hatch. A stain control keeps
-    # the initial count fixed without adding births, and gives a known integral.
+    # Two mature eggs plus 36 adults fill the ecological quota without residue.
+    # This gives a known integral under both old and new capacity semantics.
     blocked = {
         "name": "integral-fixture", "seed": 19, "duration": 6,
         "habitats": [{"id": "nest"}], "actions": [],
         "creatures": ([{"stage": "egg", "age": 178, "location": "nest"}] * 2
-                      + [{"stage": "stain", "location": "nest"}] * 36),
+                      + [{"stage": "adult", "location": "nest"}] * 36),
     }
     output, _ = run_pair(blocked, "check-integral")
     validate_trace(output, blocked)
@@ -219,6 +220,13 @@ def record(scenario, tag, group, **labels):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--evidence", default="Docs/residue-decay-evidence.json")
+    args = parser.parse_args()
+    target = ROOT / args.evidence
+    baseline_path = ROOT / "Docs/residue-capacity-evidence.json"
+    require(target.resolve() != baseline_path.resolve(), "never overwrite published task 002 evidence")
+    baseline = load(baseline_path)
     OUT.mkdir(parents=True, exist_ok=True)
     plan_commit = command(["git", "log", "--format=%H", "--reverse", "--",
                            "Docs/residue-capacity-plan.md"]).splitlines()[0]
@@ -276,7 +284,9 @@ def main():
     evidence = {
         "schema": 1,
         "planCommit": plan_commit,
-        "productBaseCommit": command(["git", "rev-parse", plan_commit + "^"]),
+        "productBaseCommit": command(["git", "merge-base", "HEAD", "origin/main"]),
+        "referenceEvidenceSha256": hashlib.sha256(baseline_path.read_bytes()).hexdigest(),
+        "referencePlanProductBaseCommit": command(["git", "rev-parse", plan_commit + "^"]),
         "matrix": {"seeds": SEEDS, "doses": DOSES, "duration": 7200, "step": 2,
                    "formalCells": 60, "formalEngineRuns": 120},
         "countColumns": COUNT_COLUMNS,
@@ -288,7 +298,11 @@ def main():
                        "dotnet": command([DOTNET, "--version"]).strip()},
         "runs": rows,
     }
-    save(ROOT / "Docs/residue-capacity-evidence.json", evidence)
+    reference = {r["id"]: r for r in baseline["runs"]}
+    for row in rows:
+        row["baselineMetrics"] = reference[row["id"]]["metrics"]["swift"]
+        row["deltaVs002"] = {k: v - row["baselineMetrics"][k] for k, v in row["metrics"]["swift"].items()}
+    save(target, evidence)
     print("PASS complete 60-cell / 120-engine matrix; evidence written", flush=True)
 
 

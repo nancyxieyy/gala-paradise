@@ -46,6 +46,8 @@ extension GameState {
             }) {
                 if w.creatures[i].stage != r.kind.rawValue {
                     let previous = w.creatures[i].stage
+                    w.creatures[i].residueAge = 0
+                    w.creatures[i].dormant = false
                     if w.creatures[i].roach && !r.live {
                         w.deaths += 1
                     }
@@ -56,7 +58,26 @@ extension GameState {
                 w.creatures[i].trust = Double(life?.bonds[key]?.trust ?? 0)
             }
         }
+        w.limitResidues()
+        let retained = Set(w.creatures.map { $0.id })
+        residents.removeAll {
+            [.corpse, .stain].contains($0.kind) && !retained.contains($0.id.uuidString.lowercased())
+        }
         world = w
+    }
+    var populationCount: Int {
+        residents.filter { $0.live || $0.kind == .egg }.count
+    }
+    mutating func limitPopulation() {
+        var count = 0
+        residents = residents.filter {
+            if $0.live || $0.kind == .egg {
+                count += 1
+                return count <= 38
+            }
+            return true
+        }
+        reconcileWorld()
     }
     mutating func worldSignal(_ kind: String, id: UUID? = nil, location: String? = nil) {
         reconcileWorld()

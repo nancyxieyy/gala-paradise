@@ -92,6 +92,8 @@ extension Paradise {
             else {
                 continue
             }
+            panels[r.id]?.alphaValue = c.stage == "corpse"
+                ? 1 - 0.65 * min(1, c.residueAge / World.corpseDecay) : 1
             panels[r.id]?.contentView?.needsDisplay = true
             eggProgress[r.id] = c.stage == "egg" ? min(1, c.age / 180) : nil
             if prior[r.id] == nil {

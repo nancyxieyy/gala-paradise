@@ -47,3 +47,19 @@ zero=run('swift',control,'D-no-eggs');assert zero['metrics']['population']==0
 empty=dict(control,creatures=[],actions=[],duration=7200);zero=run('swift',empty,'empty');assert zero['metrics']['population']==0 and not any(x['rule']=='visitors' for x in zero['eventLog'])
 (OUT/'summary.json').write_text(json.dumps({k:v['metrics'] for k,v in results.items()},indent=2))
 print('PASS A-E hypotheses, no-egg control, empty-world control, cross-language save/resume')
+
+# Residue decay is active-time based, grants food without creating organisms.
+j = results['J-corpse-decay']
+assert not any(c['stage'] == 'corpse' for c in j['world']['creatures'])
+decays = [e for e in j['eventLog'] if e['trigger'] == 'decay' and e['rule'] == 'residue']
+assert len(decays) == 1 and decays[0]['timestamp'] == 600
+comparison = json.loads((ROOT/'Tests/Simulation/scenarios/J-corpse-decay.json').read_text())
+comparison['creatures'] = []
+no_corpse = run('swift', comparison, 'J-no-corpse')
+assert j['world']['habitats'][0]['food'] > no_corpse['world']['habitats'][0]['food']
+assert j['world']['births'] == 0 and j['metrics']['population'] == 0
+# Every sampled ecology count remains bounded; residual total is not population.
+for output in results.values():
+    assert sum(c['stage'] in ('adult','baby','gold','egg') for c in output['world']['creatures']) <= 38
+    assert all(s['population'] + s['eggs'] <= 38 for s in output['samples'])
+print('PASS J: corpse gone at 600, food above control, no fabricated or over-capacity births')

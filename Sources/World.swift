@@ -13,6 +13,8 @@ struct WorldCreature: Codable {
     var age = 0.0, energy = 1.0, hunger = 0.2, fear = 0.0, curiosity = 0.5, boldness = 0.5, fertility = 0.6, trust = 0.0
     var threat = 0.0, friendly = 0.0, exposure = 0.0, resistance = 0.5, distance = 0.5, cooldown = 0.0,
         visibleUntil = 0.0
+    var residueAge = 0.0
+    var dormant = false
     var lastMigrationTime = -1.0
     var previousLocation = "", originEgg = ""
     var protected = false, playerChemical = false
@@ -52,6 +54,38 @@ struct RuleBasedWorldDirector: IWorldDirector {
     }
 }
 struct World: Codable {
+    static let corpseDecay = 600.0
+    static let corpseFood = 0.25
+    static let residueCap = 24
+    var ecologicalCount: Int {
+        creatures.filter { $0.roach || $0.stage == "egg" }.count
+    }
+    mutating func limitResidues() {
+        while creatures.filter({ ["corpse", "stain"].contains($0.stage) }).count > Self.residueCap {
+            let stage = creatures.contains { $0.stage == "corpse" } ? "corpse" : "stain"
+            var oldest: Int?
+            for i in creatures.indices where creatures[i].stage == stage {
+                if oldest == nil || creatures[i].residueAge > creatures[oldest!].residueAge {
+                    oldest = i
+                }
+            }
+            let c = creatures.remove(at: oldest!)
+            event(c.id, c.location, "evicted", c.stage, "removed", "residue-cap")
+        }
+    }
+    mutating func advanceResidues(_ dt: Double) {
+        for i in creatures.indices where ["corpse", "stain"].contains(creatures[i].stage) {
+            creatures[i].residueAge += dt
+            if creatures[i].stage == "corpse" {
+                let h = habitat(creatures[i].location)
+                habitats[h].food = min(1, habitats[h].food + Self.corpseFood * dt / Self.corpseDecay)
+            }
+        }
+        for c in creatures where c.stage == "corpse" && c.residueAge >= Self.corpseDecay {
+            event(c.id, c.location, "decay", "corpse", "removed", "residue")
+        }
+        creatures.removeAll { $0.stage == "corpse" && $0.residueAge >= Self.corpseDecay }
+    }
     var migrationMode = "treatment"
     var reversals = 0, chemicalMigrations = 0
     var capacity = 38
@@ -98,7 +132,7 @@ struct World: Codable {
         return habitats.count - 1
     }
     mutating func add(_ stage: String, _ location: String, id: String? = nil, record: Bool = true) -> String {
-        guard creatures.count < capacity else {
+        guard ["corpse", "stain"].contains(stage) || ecologicalCount < capacity else {
             return ""
         }
         serial += 1
@@ -220,6 +254,8 @@ struct World: Codable {
         revision += 1
         visitorKind = ""
         applySignals()
+        limitResidues()
+        advanceResidues(dt)
         let d = director.parameters(self)
         visibleActivity *= 0.995
         // 1, 6, 8: disturbance / population pressure / game-only food signals.
@@ -245,12 +281,15 @@ struct World: Codable {
         let count = creatures.count
         for i in 0..<count {
             var c = creatures[i]
+            guard c.roach || c.stage == "egg" else { continue }
             let hi = habitat(c.location)
             let h = habitats[hi]
             if c.stage == "egg" {
                 c.age += dt * rate * (h.chemical > 0.4 ? 0.4 : 1)
-                if c.age >= 180 && creatures.count < capacity - 1 {
+                if c.age >= 180 && ecologicalCount < capacity - 1 {
                     c.stage = "hatched"
+                    c.dormant = false
+                    creatures[i] = c
                     event(c.id, h.id, "incubation", "egg", "hatched", "lifecycle")
                     for _ in 0..<2 {
                         let baby = add("baby", h.id)
@@ -260,6 +299,13 @@ struct World: Codable {
                             creatures[j].originEgg = c.id
                         }
                     }
+                }
+                if c.stage == "egg" && c.age >= 180 {
+                    c.age = 180
+                    if !c.dormant {
+                        event(c.id, h.id, "dormant", "egg", "dormant", "lifecycle")
+                    }
+                    c.dormant = true
                 }
                 creatures[i] = c
                 continue
@@ -345,7 +391,7 @@ struct World: Codable {
             }
             // 4: eggs require a fed fertile adult in a stable nest, capped by carrying capacity.
             if c.stage != "baby" && h.nest && h.stable > 60 && c.hunger < 0.8 && time >= c.cooldown
-                && creatures.count < min(32, capacity - 2)
+                && ecologicalCount < min(32, capacity - 2)
             {
                 if random() < dt * rate / 600 * c.fertility * d.pressure {
                     _ = add("egg", h.id)
@@ -358,6 +404,7 @@ struct World: Codable {
         creatures.removeAll {
             $0.stage == "hatched"
         }
+        limitResidues()
         // 10: rare visitors respond to ecology and interaction history; cooldown is not a playtime unlock.
         if interactions > 0 && visibleActivity > 0.5 {
             if time >= mouseCooldown && random() < dt / 900 * min(2, visibleActivity / 4) * d.rarity {
@@ -416,6 +463,8 @@ extension WorldCreature {
     init(from decoder: Decoder) throws {
         self.init()
         let c = try decoder.container(keyedBy: WorldKey.self)
+        residueAge = try c.decodeIfPresent(Double.self, forKey: WorldKey("residueAge")) ?? 0
+        dormant = try c.decodeIfPresent(Bool.self, forKey: WorldKey("dormant")) ?? false
         lastMigrationTime =
             try c.decodeIfPresent(Double.self, forKey: WorldKey("lastMigrationTime")) ?? lastMigrationTime
         previousLocation = try c.decodeIfPresent(String.self, forKey: WorldKey("previousLocation")) ?? previousLocation

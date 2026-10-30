@@ -1547,6 +1547,7 @@ extension Paradise {
         projectReadable(state.residents, now: 0)
         precondition(abs(panels[r.id]!.alphaValue - 0.675) < 1e-10)
         let age = state.world!.creatures[0].residueAge
+        worldAccumulator = 2
         paused = true
         frameTime = Date().timeIntervalSince1970 - 0.1
         tick()
@@ -1557,6 +1558,9 @@ extension Paradise {
         tick()
         precondition(state.world!.creatures[0].residueAge == age)
         state.life!.focusRemaining = 0
+        frameTime = Date().timeIntervalSince1970 - 0.1
+        tick()
+        precondition(state.world!.creatures[0].residueAge == age + 2)
         print("PASS: native corpse alpha from model, pause and focus freeze residue age")
     }
 }

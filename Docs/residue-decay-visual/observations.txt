@@ -1,0 +1,3 @@
+fresh: worldTime=4.0 age=4.0 alpha=0.9956666666666667 residents=1
+dry: worldTime=304.0 age=304.0 alpha=0.6706666666666666 residents=1
+gone: worldTime=606.0 age=-1.0 alpha=0.0 residents=0

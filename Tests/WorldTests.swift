@@ -139,7 +139,9 @@ func runResidueWorldTests() {
     precondition(full.add("egg", "edge").isEmpty)
 
     var capped = World(seed: 19)
-    for _ in 0..<25 { _ = capped.add("stain", "edge", record: false) }
+    for _ in 0..<25 {
+        _ = capped.add("stain", "edge", record: false)
+    }
     let oldest = capped.creatures[0].id
     capped.creatures[0].residueAge = 100
     capped.limitResidues()
@@ -150,7 +152,9 @@ func runResidueWorldTests() {
     precondition(capped.recentEvents.allSatisfy { $0.rule == "residue-cap" })
 
     var order = World(seed: 19)
-    for _ in 0..<25 { _ = order.add("corpse", "edge", record: false) }
+    for _ in 0..<25 {
+        _ = order.add("corpse", "edge", record: false)
+    }
     let oldestCorpse = order.creatures[17].id
     order.creatures[17].residueAge = 590
     order.limitResidues()
@@ -179,7 +183,9 @@ func runResidueWorldTests() {
     let a = dormant.add("adult", "edge", record: false)
     let b = dormant.add("adult", "edge", record: false)
     dormant.creatures[0].age = 178
-    for _ in 0..<10 { dormant.step() }
+    for _ in 0..<10 {
+        dormant.step()
+    }
     precondition(dormant.creatures[0].age == 180 && dormant.creatures[0].dormant)
     precondition(dormant.recentEvents.filter { $0.trigger == "dormant" }.count == 1)
     var resumed = try! JSONDecoder().decode(World.self, from: JSONEncoder().encode(dormant))
@@ -192,12 +198,16 @@ func runResidueWorldTests() {
 
     var game = GameState()
     game.world = World(seed: 7)
-    for _ in 0..<38 { game.residents.append(Resident(kind: .adult, x: 0, y: 0, born: 0)) }
+    for _ in 0..<38 {
+        game.residents.append(Resident(kind: .adult, x: 0, y: 0, born: 0))
+    }
     game.residents.append(Resident(kind: .corpse, x: 0, y: 0, born: 0))
     game.residents.append(Resident(kind: .stain, x: 0, y: 0, born: 0))
     game.reconcileWorld()
     precondition(game.world!.ecologicalCount == 38 && game.world!.creatures.count == 40)
-    for n in 0..<300 { game.stepWorld(rate: 1, now: Double(n) * 2) }
+    for n in 0..<300 {
+        game.stepWorld(rate: 1, now: Double(n) * 2)
+    }
     precondition(game.residents.count == 39 && game.residents.contains { $0.kind == .stain })
     precondition(game.captures == 0 && game.cleaned == 0 && game.xp == 0)
     precondition(game.life!.kills == 0 && game.life!.cards.isEmpty && game.progression!.shells == 0)

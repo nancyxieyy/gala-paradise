@@ -368,7 +368,8 @@ residueFull.Add("stain", "edge", record: false);
 Check(residueFull.EcologicalCount == 2 && residueFull.creatures.Count == 4 &&
     residueFull.Add("egg", "edge") == "", "residue is independent of ecological quota");
 var residueCapped = new World(19);
-for (int i = 0; i < 25; i++) residueCapped.Add("stain", "edge", record: false);
+for (int i = 0; i < 25; i++)
+    residueCapped.Add("stain", "edge", record: false);
 string oldestStain = residueCapped.creatures[0].id;
 residueCapped.creatures[0].residueAge = 100;
 residueCapped.LimitResidues();
@@ -403,7 +404,8 @@ eggDormancy.Add("egg", "edge", record: false);
 string dormAdultA = eggDormancy.Add("adult", "edge", record: false);
 string dormAdultB = eggDormancy.Add("adult", "edge", record: false);
 eggDormancy.creatures[0].age = 178;
-for (int i = 0; i < 10; i++) eggDormancy.Step();
+for (int i = 0; i < 10; i++)
+    eggDormancy.Step();
 Check(eggDormancy.creatures[0].age == 180 && eggDormancy.creatures[0].dormant &&
     eggDormancy.recentEvents.Count(e => e.trigger == "dormant") == 1, "mature eggs sleep and log once");
 var dormResumed = System.Text.Json.JsonSerializer.Deserialize<World>(
@@ -417,26 +419,31 @@ Check(dormResumed.creatures.Count == 2 && dormResumed.creatures.All(c => c.stage
     "free capacity hatches sleeping egg on the next step");
 var residueGame = new Game(0, 7) { EnableEncounters = false };
 residueGame.State.World = new World(7);
-for (int i = 0; i < 38; i++) residueGame.State.Residents.Add(new() { Kind = Kind.Adult });
+for (int i = 0; i < 38; i++)
+    residueGame.State.Residents.Add(new() { Kind = Kind.Adult });
 residueGame.State.Residents.Add(new() { Kind = Kind.Corpse });
 residueGame.State.Residents.Add(new() { Kind = Kind.Stain });
 residueGame.ReconcileWorld();
 Check(residueGame.State.World.EcologicalCount == 38 && residueGame.State.World.creatures.Count == 40,
     "full bridge preserves residual residents");
-for (int i = 0; i < 300; i++) residueGame.StepWorld(i * 2);
+for (int i = 0; i < 300; i++)
+    residueGame.StepWorld(i * 2);
 Check(residueGame.State.Residents.Count == 39 && residueGame.State.Residents.Any(r => r.Kind == Kind.Stain) &&
     residueGame.State.Captures == 0 && residueGame.State.Cleaned == 0 && residueGame.State.Xp == 0 &&
     residueGame.State.Progression.Shells == 0 && residueGame.State.Life.Cards.Count == 0 &&
     residueGame.State.Life.Kills == 0, "natural decay grants no player rewards or achievements");
 var residueLoaded = new Game(0, 7);
-for (int i = 0; i < 24; i++) residueLoaded.State.Residents.Add(new() { Kind = Kind.Stain });
-for (int i = 0; i < 40; i++) residueLoaded.State.Residents.Add(new() { Kind = Kind.Adult });
+for (int i = 0; i < 24; i++)
+    residueLoaded.State.Residents.Add(new() { Kind = Kind.Stain });
+for (int i = 0; i < 40; i++)
+    residueLoaded.State.Residents.Add(new() { Kind = Kind.Adult });
 residueLoaded.Restore(residueLoaded.Serialize());
 Check(residueLoaded.PopulationCount == 38 && residueLoaded.State.Residents.Count == 62,
     "loading limits population independently from earlier residue rows");
 
 var residueOrder = new World(19);
-for (int i = 0; i < 25; i++) residueOrder.Add("corpse", "edge", record: false);
+for (int i = 0; i < 25; i++)
+    residueOrder.Add("corpse", "edge", record: false);
 string oldestCorpseID = residueOrder.creatures[17].id;
 residueOrder.creatures[17].residueAge = 590;
 residueOrder.LimitResidues();
@@ -446,12 +453,15 @@ var freezeResidue = new Game(0, 7);
 freezeResidue.State.Residents.Add(new() { Kind = Kind.Corpse });
 freezeResidue.ReconcileWorld();
 freezeResidue.Paused = true;
-freezeResidue.Tick(10, .1);
+freezeResidue.Tick(10, 2);
 Check(freezeResidue.State.World!.creatures[0].residueAge == 0, "pause does not advance corpse age");
 freezeResidue.Paused = false;
 freezeResidue.State.Life.FocusRemaining = 60;
-freezeResidue.Tick(11, .1);
+freezeResidue.Tick(12, 2);
 Check(freezeResidue.State.World!.creatures[0].residueAge == 0, "focus does not advance corpse age");
+freezeResidue.State.Life.FocusRemaining = 0;
+freezeResidue.Tick(14, 2);
+Check(freezeResidue.State.World!.creatures[0].residueAge == 2, "active tick resumes corpse decay");
 var sleepingProjection = new Game(0, 7);
 sleepingProjection.State.World = eggDormancy;
 sleepingProjection.State.Residents = eggDormancy.creatures.Select(c => new Resident

@@ -1,6 +1,6 @@
 # 旮旯乐园 Mac App Store 版
 
-`GalaParadise.xcodeproj` 的 `GalaParadise` 是商店版方案。版本为 1.7.1，构建号为 13。它支持 macOS 13 起的 Apple Silicon 和 Intel Mac，使用 `studio.gala.paradise` 作为 Bundle ID。
+`GalaParadise.xcodeproj` 的 `GalaParadise` 是商店版方案。版本为 1.7.1，构建号为 14。它支持 macOS 13 起的 Apple Silicon 和 Intel Mac，使用 `studio.gala.paradise` 作为 Bundle ID。
 
 商店版启用了 App Sandbox。桌面上的小住客、工具、喂食、伙伴和小窝照常使用；文件夹生态可在「试玩文件夹」里体验。商店版不会读取 Finder 窗口，首次启动会在应用容器内新建存档。朋友测试版的存档仍在原来的位置。
 
@@ -30,7 +30,7 @@ Xcode MCP 的 `XcodeOpenWorkspace` 和 `BuildProject` 可打开项目并构建�
 
 **关键词** 桌宠,桌面宠物,生态模拟,动物,养成,离线,专注,治愈
 
-**隐私政策 URL** [Mac App Store 版隐私政策](https://github.com/nancyxieyy/gala-paradise/blob/main/Resources/MacAppStore/PrivacyPolicy.txt)。合并到 `main` 后确认未登录也能访问。应用菜单可离线查看政策全文。
+**隐私政策 URL** [Mac App Store 版隐私政策](https://github.com/nancyxieyy/gala-paradise/blob/630e365313f6e92dd0728e915c0142c54ce3e3c9/Resources/MacAppStore/PrivacyPolicy.txt)。应用和商店页面指向与该构建附带文本一致的公开版本，应用菜单也可离线查看政策全文。更新政策时，上传新文本并同步更新两处链接。
 
 **支持 URL 草案** [旮旯乐园问题反馈](https://github.com/nancyxieyy/gala-paradise/issues)。发布前核对公开支持入口和版权署名。
 

@@ -30,7 +30,7 @@
 /* Begin PBXFileReference section */
 		07DAFCCC538C9C7DD85455C2 /* Roaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Roaming.swift; sourceTree = "<group>"; };
 		091322B000E56A05F98CC5D6 /* GalaParadise.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GalaParadise.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		099717AFF80717F5DD482A52 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		099717AFF80717F5DD482A52 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		1356509599059B342FE2A161 /* BlindSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlindSession.swift; sourceTree = "<group>"; };
 		43BCF906704ED70D3D4EF8F4 /* DirectInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectInteraction.swift; sourceTree = "<group>"; };
 		4AE081A737C1CD63744EBDAC /* WorldBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldBridge.swift; sourceTree = "<group>"; };
@@ -199,7 +199,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -281,7 +281,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;

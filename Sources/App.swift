@@ -666,10 +666,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         alert.addButton(withTitle: "关闭")
         alert.addButton(withTitle: "在线查看")
         NSApp.activate(ignoringOtherApps: true)
-        if alert.runModal() == .alertSecondButtonReturn,
-            let webURL = URL(
-                string: "https://github.com/nancyxieyy/gala-paradise/blob/main/Resources/MacAppStore/PrivacyPolicy.txt")
-        {
+        let policyURL = "https://github.com/nancyxieyy/gala-paradise/blob/"
+            + "630e365313f6e92dd0728e915c0142c54ce3e3c9/Resources/MacAppStore/PrivacyPolicy.txt"
+        if alert.runModal() == .alertSecondButtonReturn, let webURL = URL(string: policyURL) {
             NSWorkspace.shared.open(webURL)
         }
     }

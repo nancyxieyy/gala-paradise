@@ -30,7 +30,7 @@ Gala Paradise is an offline desktop pet and ecosystem simulation for macOS and W
 | macOS | macOS 13+，Apple Silicon / Intel | Apple Silicon 已有模型和原生组件测试记录；Intel 为交叉构建 |
 | Windows | Windows 10 22H2 / 11，x64 | 已有交叉构建和模型测试记录；原生界面、DPI 与资源管理器联动仍待真机验证 |
 
-目前没有正式发行签名或 macOS 公证，也没有真人体验验证结果。完整边界见 [验收记录](Tests/VALIDATION.md)。
+朋友测试包没有发行签名或 macOS 公证，也没有真人体验验证结果。Mac App Store 使用独立的沙盒构建，见 [Xcode 上架说明](Docs/mac-app-store.md)。完整测试边界见 [验收记录](Tests/VALIDATION.md)。
 
 本仓库提供源码。本地生成的应用、安装包和工具链位于 `build/`、`releases/`，不随源码提交。
 

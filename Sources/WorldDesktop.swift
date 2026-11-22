@@ -13,6 +13,7 @@ extension Paradise {
         projectReadable(prior, now: now)
         let w = state.world!
         blindSession?.observe(w)
+        #if !GALA_APP_STORE
         if blindSession == nil && CommandLine.arguments.contains("--world-log") {
             let encoder = JSONEncoder()
             for event in w.recentEvents where (event.sequence ?? 0) > lastLoggedSequence {
@@ -22,6 +23,7 @@ extension Paradise {
                 }
             }
         }
+        #endif
         for c in w.creatures {
             guard let id = UUID(uuidString: c.id),
                 let r = state.residents.first(where: {

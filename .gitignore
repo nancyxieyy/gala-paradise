@@ -4,6 +4,7 @@
 
 # macOS files and generated artwork
 .DS_Store
+xcuserdata/
 Resources/AppIcon.iconset/
 
 # .NET build intermediates

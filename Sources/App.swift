@@ -1,5 +1,7 @@
 import AppKit
+#if !GALA_APP_STORE
 import ApplicationServices
+#endif
 
 final class ActionButton: NSButton {
     var actionBlock: (() -> Void)?
@@ -268,18 +270,23 @@ final class Dashboard: NSView {
 }
 
 final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
+    #if GALA_APP_STORE
+    let blindSession: BlindSession? = nil
+    let isTestRun = false
+    #else
     let blindSession: BlindSession? =
         CommandLine.arguments.contains("--blind-playtest")
         ? BlindSession(
             root: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
                 .appendingPathComponent("GalaParadise")) : nil
-    var state = GameState()
-    var habitat = Habitat()
-    var entrances: [UUID: (frame: CGRect, until: Double)] = [:]
     var isTestRun: Bool {
         CommandLine.arguments.contains("--benchmark-idle") || CommandLine.arguments.contains("--smoke")
             || CommandLine.arguments.contains("--render") || CommandLine.arguments.contains("--integration-test")
     }
+    #endif
+    var state = GameState()
+    var habitat = Habitat()
+    var entrances: [UUID: (frame: CGRect, until: Double)] = [:]
     var window: NSWindow!
     var lastLifeRefresh: Double = 0
     var reactions: [UUID: PetPanel] = [:]
@@ -306,7 +313,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var lastProjectedSequence: UInt64 = 0
     var folderFrames: [String: CGRect] = [:]
     var tickCount = 0
+    #if !GALA_APP_STORE
     var lastFinder = ""
+    #endif
     var lastFeed: Double = 0
     var lastFolder: Double = 0
     var frameTime = Date().timeIntervalSince1970
@@ -336,6 +345,9 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(appItem)
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "关于旮旯乐园", action: #selector(showDashboard), keyEquivalent: "")
+        #if GALA_APP_STORE
+        appMenu.addItem(withTitle: "隐私政策", action: #selector(showPrivacyPolicy), keyEquivalent: "")
+        #endif
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "退出旮旯乐园", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu
@@ -373,6 +385,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         showDashboard()
         timer = Timer.scheduledTimer(
             timeInterval: 1.0 / 30.0, target: self, selector: #selector(tick), userInfo: nil, repeats: true)
+        #if !GALA_APP_STORE
         if CommandLine.arguments.contains("--benchmark-idle") {
             window.orderOut(nil)
             if CommandLine.arguments.contains("--paused") {
@@ -404,6 +417,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 NSApp.terminate(nil)
             }
         }
+        #endif
     }
     func rebuildMenu() {
         let m = NSMenu()
@@ -457,8 +471,13 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         growth.submenu = rates
         m.addItem(growth)
         item("清理游戏痕迹", #selector(scan))
+        #if !GALA_APP_STORE
         item("连接 Finder", #selector(connectFinderMenu))
+        #endif
         item("试玩文件夹", #selector(tryFolder))
+        #if GALA_APP_STORE
+        item("隐私政策", #selector(showPrivacyPolicy))
+        #endif
         m.addItem(.separator())
         item("退出旮旯乐园", #selector(quit), "q")
         status.menu = m
@@ -633,6 +652,27 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         save()
         rebuildMenu()
     }
+    #if GALA_APP_STORE
+    @objc func showPrivacyPolicy() {
+        guard let url = Bundle.main.url(forResource: "PrivacyPolicy", withExtension: "txt"),
+            let policy = try? String(contentsOf: url, encoding: .utf8)
+        else {
+            tell("暂时无法打开隐私政策。")
+            return
+        }
+        let alert = NSAlert()
+        alert.messageText = "旮旯乐园 · 隐私政策"
+        alert.informativeText = policy
+        alert.addButton(withTitle: "关闭")
+        alert.addButton(withTitle: "在线查看")
+        NSApp.activate(ignoringOtherApps: true)
+        let policyURL = "https://github.com/nancyxieyy/gala-paradise/blob/"
+            + "630e365313f6e92dd0728e915c0142c54ce3e3c9/Resources/MacAppStore/PrivacyPolicy.txt"
+        if alert.runModal() == .alertSecondButtonReturn, let webURL = URL(string: policyURL) {
+            NSWorkspace.shared.open(webURL)
+        }
+    }
+    #else
     func connectFinder() {
         if AXIsProcessTrusted() {
             tell("Finder 已连接；打开或切换文件夹试试")
@@ -645,6 +685,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             NSWorkspace.shared.open(url)
         }
     }
+    #endif
     func previewFolder(_ name: String, point: NSPoint) {
         let p = window.convertPoint(toScreen: dashboard.convert(point, to: nil))
         folderBurst(name: name, at: p, frame: window.frame)
@@ -1043,9 +1084,11 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 } ?? false)
         }
         if tickCount % 30 == 0 {
+            #if !GALA_APP_STORE
             if !state.quiet {
                 checkFinder()
             }
+            #endif
             dashboard.refresh()
             if lifeController?.window?.isVisible == true {
                 lifeController?.refresh()
@@ -1087,6 +1130,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
         syncPanels()
         save()
     }
+    #if !GALA_APP_STORE
     func checkFinder() {
         guard !isTestRun, AXIsProcessTrusted(), let front = NSWorkspace.shared.frontmostApplication,
             front.bundleIdentifier == "com.apple.finder"
@@ -1424,6 +1468,7 @@ final class Paradise: NSObject, NSApplicationDelegate, NSWindowDelegate {
             "PASS: native overlays, folder signals without spawning, non-instant chemical, vacuum, extinction, pause/focus/cap"
         )
     }
+    #endif
     func load() {
         if isTestRun {
             return

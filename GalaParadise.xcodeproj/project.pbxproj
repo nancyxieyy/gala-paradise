@@ -1,0 +1,389 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02AC37964FBF7087B2451B69 /* Art.swift in Sources */ = {isa = PBXBuildFile; fileRef = A046626E52151139BD5CB70D /* Art.swift */; };
+		0AC5F4B5802BF45942106B11 /* WorldDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7659DF24EFF134989A3F4A6 /* WorldDesktop.swift */; };
+		1CD513FE16F68B71DB5B5964 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3BC43DF1BD041E19F6EFE25 /* Assets.xcassets */; };
+		1CF982FC468EFDF061326C60 /* DirectInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43BCF906704ED70D3D4EF8F4 /* DirectInteraction.swift */; };
+		51C321839FFA2998E657D762 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 099717AFF80717F5DD482A52 /* PrivacyInfo.xcprivacy */; };
+		597A1B3BC271CE48E267B522 /* Life.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B83A8781912A3867953C485 /* Life.swift */; };
+		6CCB4DB675ACA036742B2172 /* ReadableDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89747EA30560E76A004E7FA1 /* ReadableDesktop.swift */; };
+		7208D38E25D2BD27A454250B /* WorldBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE081A737C1CD63744EBDAC /* WorldBridge.swift */; };
+		78E95562C930F60D884EA879 /* PrivacyPolicy.txt in Resources */ = {isa = PBXBuildFile; fileRef = B4B3C1FAF109F13D04C0B011 /* PrivacyPolicy.txt */; };
+		7B8234FD3B1A6B06C7BE4214 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = B03436908D9D0441D63F9AC2 /* Game.swift */; };
+		89CB91E4443F4D1DEC85A503 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F3EF4094BF814A05C7EDC /* main.swift */; };
+		8D5FE6033F89304FC7A589C5 /* Progression.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BAD590698A58508E3F19AC /* Progression.swift */; };
+		9929595D2FA553D8409F2C11 /* Habitat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60BCEF24F38DDDAD994EE35B /* Habitat.swift */; };
+		A9A91CCBE418FD24C69ADF49 /* Roaming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DAFCCC538C9C7DD85455C2 /* Roaming.swift */; };
+		C1B16F4DC8F517982750E73B /* World.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72DC496FCF8474ECF29963F2 /* World.swift */; };
+		CEF28D6A1A27F7BF610C0DD6 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71E3D10E2EA2F4D45B357026 /* App.swift */; };
+		D01A9A8022BBB4BDC9EFAAD0 /* LifeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2411D63349B27759FB72C90 /* LifeUI.swift */; };
+		FE5E9D3767C3B9764CC18B5C /* BlindSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1356509599059B342FE2A161 /* BlindSession.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		07DAFCCC538C9C7DD85455C2 /* Roaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Roaming.swift; sourceTree = "<group>"; };
+		091322B000E56A05F98CC5D6 /* GalaParadise.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GalaParadise.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		099717AFF80717F5DD482A52 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1356509599059B342FE2A161 /* BlindSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlindSession.swift; sourceTree = "<group>"; };
+		43BCF906704ED70D3D4EF8F4 /* DirectInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectInteraction.swift; sourceTree = "<group>"; };
+		4AE081A737C1CD63744EBDAC /* WorldBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldBridge.swift; sourceTree = "<group>"; };
+		60BCEF24F38DDDAD994EE35B /* Habitat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habitat.swift; sourceTree = "<group>"; };
+		71E3D10E2EA2F4D45B357026 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		72DC496FCF8474ECF29963F2 /* World.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = World.swift; sourceTree = "<group>"; };
+		7B83A8781912A3867953C485 /* Life.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Life.swift; sourceTree = "<group>"; };
+		89747EA30560E76A004E7FA1 /* ReadableDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadableDesktop.swift; sourceTree = "<group>"; };
+		A046626E52151139BD5CB70D /* Art.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Art.swift; sourceTree = "<group>"; };
+		B03436908D9D0441D63F9AC2 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
+		B1BAD590698A58508E3F19AC /* Progression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Progression.swift; sourceTree = "<group>"; };
+		B4B3C1FAF109F13D04C0B011 /* PrivacyPolicy.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = PrivacyPolicy.txt; sourceTree = "<group>"; };
+		C3BC43DF1BD041E19F6EFE25 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D7659DF24EFF134989A3F4A6 /* WorldDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldDesktop.swift; sourceTree = "<group>"; };
+		E2411D63349B27759FB72C90 /* LifeUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeUI.swift; sourceTree = "<group>"; };
+		F28F3EF4094BF814A05C7EDC /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		55C16478BA8FB13E8F01D46B /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				71E3D10E2EA2F4D45B357026 /* App.swift */,
+				A046626E52151139BD5CB70D /* Art.swift */,
+				1356509599059B342FE2A161 /* BlindSession.swift */,
+				43BCF906704ED70D3D4EF8F4 /* DirectInteraction.swift */,
+				B03436908D9D0441D63F9AC2 /* Game.swift */,
+				60BCEF24F38DDDAD994EE35B /* Habitat.swift */,
+				7B83A8781912A3867953C485 /* Life.swift */,
+				E2411D63349B27759FB72C90 /* LifeUI.swift */,
+				F28F3EF4094BF814A05C7EDC /* main.swift */,
+				B1BAD590698A58508E3F19AC /* Progression.swift */,
+				89747EA30560E76A004E7FA1 /* ReadableDesktop.swift */,
+				07DAFCCC538C9C7DD85455C2 /* Roaming.swift */,
+				72DC496FCF8474ECF29963F2 /* World.swift */,
+				4AE081A737C1CD63744EBDAC /* WorldBridge.swift */,
+				D7659DF24EFF134989A3F4A6 /* WorldDesktop.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		5C659C0ABB05BF7EC801FE50 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				091322B000E56A05F98CC5D6 /* GalaParadise.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		72E15EA701F08331848D5451 = {
+			isa = PBXGroup;
+			children = (
+				83FACCF51515B55F1C297FEE /* MacAppStore */,
+				55C16478BA8FB13E8F01D46B /* Sources */,
+				5C659C0ABB05BF7EC801FE50 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		83FACCF51515B55F1C297FEE /* MacAppStore */ = {
+			isa = PBXGroup;
+			children = (
+				C3BC43DF1BD041E19F6EFE25 /* Assets.xcassets */,
+				099717AFF80717F5DD482A52 /* PrivacyInfo.xcprivacy */,
+				B4B3C1FAF109F13D04C0B011 /* PrivacyPolicy.txt */,
+			);
+			name = MacAppStore;
+			path = Resources/MacAppStore;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		802873BEB630B9EEBD091292 /* GalaParadise */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E9EFD735900D388D6CB1434B /* Build configuration list for PBXNativeTarget "GalaParadise" */;
+			buildPhases = (
+				E3C4C8DE1D3B8363BF03E23F /* Sources */,
+				047BF83732EF52B91D253C3B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GalaParadise;
+			packageProductDependencies = (
+			);
+			productName = GalaParadise;
+			productReference = 091322B000E56A05F98CC5D6 /* GalaParadise.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D7B8F8784D77472E9CA73146 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					802873BEB630B9EEBD091292 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = E2A91A022322ACA8EBE0A641 /* Build configuration list for PBXProject "GalaParadise" */;
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = 72E15EA701F08331848D5451;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5C659C0ABB05BF7EC801FE50 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				802873BEB630B9EEBD091292 /* GalaParadise */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		047BF83732EF52B91D253C3B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1CD513FE16F68B71DB5B5964 /* Assets.xcassets in Resources */,
+				51C321839FFA2998E657D762 /* PrivacyInfo.xcprivacy in Resources */,
+				78E95562C930F60D884EA879 /* PrivacyPolicy.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E3C4C8DE1D3B8363BF03E23F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEF28D6A1A27F7BF610C0DD6 /* App.swift in Sources */,
+				02AC37964FBF7087B2451B69 /* Art.swift in Sources */,
+				FE5E9D3767C3B9764CC18B5C /* BlindSession.swift in Sources */,
+				1CF982FC468EFDF061326C60 /* DirectInteraction.swift in Sources */,
+				7B8234FD3B1A6B06C7BE4214 /* Game.swift in Sources */,
+				9929595D2FA553D8409F2C11 /* Habitat.swift in Sources */,
+				597A1B3BC271CE48E267B522 /* Life.swift in Sources */,
+				D01A9A8022BBB4BDC9EFAAD0 /* LifeUI.swift in Sources */,
+				8D5FE6033F89304FC7A589C5 /* Progression.swift in Sources */,
+				6CCB4DB675ACA036742B2172 /* ReadableDesktop.swift in Sources */,
+				A9A91CCBE418FD24C69ADF49 /* Roaming.swift in Sources */,
+				C1B16F4DC8F517982750E73B /* World.swift in Sources */,
+				7208D38E25D2BD27A454250B /* WorldBridge.swift in Sources */,
+				0AC5F4B5802BF45942106B11 /* WorldDesktop.swift in Sources */,
+				89CB91E4443F4D1DEC85A503 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		00E02C13FEEF7544E2537750 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 14;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "旮旯乐园";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.simulation-games";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Gala Paradise";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.7.1;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = studio.gala.paradise;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) GALA_APP_STORE";
+			};
+			name = Release;
+		};
+		1E22636D2026437B8A11BB4F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		86ABF92B9E377AAFE26A5B49 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 14;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "旮旯乐园";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.simulation-games";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Gala Paradise";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.7.1;
+				PRODUCT_BUNDLE_IDENTIFIER = studio.gala.paradise;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) GALA_APP_STORE";
+			};
+			name = Debug;
+		};
+		A46A987E851E83621325729F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E2A91A022322ACA8EBE0A641 /* Build configuration list for PBXProject "GalaParadise" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A46A987E851E83621325729F /* Debug */,
+				1E22636D2026437B8A11BB4F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E9EFD735900D388D6CB1434B /* Build configuration list for PBXNativeTarget "GalaParadise" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				86ABF92B9E377AAFE26A5B49 /* Debug */,
+				00E02C13FEEF7544E2537750 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D7B8F8784D77472E9CA73146 /* Project object */;
+}

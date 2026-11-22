@@ -146,9 +146,11 @@ extension Paradise {
             ? (action == "pet" ? "还想被摸摸 ♡" : "还在嚼呢，嚼嚼嚼～") : message
         showReaction(feedback, for: r)
     }
+    #if !GALA_APP_STORE
     @objc func connectFinderMenu() {
         connectFinder()
     }
+    #endif
     @objc func tryFolder() {
         previewFolder("试玩文件夹", point: NSPoint(x: 150, y: 150))
     }
